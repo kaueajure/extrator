@@ -65,7 +65,30 @@ Credenciais podem ser salvas no cofre do sistema (“Manter conectado”).
 
 ## Build do instalável
 
-### Linux
+### Automático (GitHub Actions — recomendado)
+
+O repositório gera builds **Windows** e **Linux** na nuvem (sem precisar de Windows local).
+
+**Download manual (teste):**
+
+1. GitHub → **Actions** → workflow **Build releases** → **Run workflow**
+2. Ao terminar, baixe os artefatos `WebRP-Extrator-windows` e `WebRP-Extrator-linux`
+
+**Release oficial (link para usuários):**
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+Isso cria um [GitHub Release](https://github.com/kaueajure/extrator/releases) com:
+
+- `WebRP-Extrator-windows.zip` — extrair e abrir `WebRP-Extrator.bat`
+- `WebRP-Extrator-linux.tar.gz` — extrair e rodar `./webrp-extrator.sh`
+
+O Chromium do Playwright já vem na pasta `ms-playwright` dentro do pacote.
+
+### Linux (local)
 
 ```bash
 ./instalar
@@ -73,20 +96,17 @@ chmod +x build/build-linux.sh
 ./build/build-linux.sh
 ```
 
-Saída em `dist/WebRP-Extrator/`. Empacote como `.deb`, AppImage ou tarball para `extrator.webriopreto.com`.
+Saída em `dist/WebRP-Extrator/`.
 
-### Windows
+### Windows (local)
 
-No Windows, com o venv ativo:
+Só em máquina Windows, ou use o GitHub Actions acima.
 
 ```powershell
+pip install -e .
 pip install pyinstaller
 pyinstaller build\webrp-extrator.spec --noconfirm
 ```
-
-Use **Inno Setup** para gerar o instalador `.exe` com wizard (Next, Next).
-
-> O Playwright exige Chromium instalado. Inclua no instalador ou rode `playwright install chromium` na pós-instalação.
 
 ## Estrutura
 

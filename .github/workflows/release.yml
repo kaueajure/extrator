@@ -1,0 +1,125 @@
+name: Build releases
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pyinstaller
+
+      - name: PyInstaller
+        run: pyinstaller build/webrp-extrator.spec --noconfirm
+
+      - name: Chromium do Playwright (embutido na pasta)
+        shell: pwsh
+        run: |
+          $browsers = "$PWD/dist/WebRP-Extrator/ms-playwright"
+          New-Item -ItemType Directory -Force -Path $browsers | Out-Null
+          $env:PLAYWRIGHT_BROWSERS_PATH = $browsers
+          python -m playwright install chromium
+
+      - name: Launcher e documentação
+        shell: pwsh
+        run: |
+          Copy-Item build/WebRP-Extrator.bat dist/WebRP-Extrator/
+          Copy-Item build/LEIA-ME-WINDOWS.txt dist/WebRP-Extrator/
+          Copy-Item .env.example dist/WebRP-Extrator/
+
+      - name: Empacotar ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/WebRP-Extrator -DestinationPath WebRP-Extrator-windows.zip -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WebRP-Extrator-windows
+          path: WebRP-Extrator-windows.zip
+          retention-days: 30
+
+  build-linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dependências do sistema (Qt)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-cursor0 libxkbcommon-x11-0 libegl1
+
+      - name: Instalar dependências Python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pyinstaller
+
+      - name: PyInstaller
+        run: pyinstaller build/webrp-extrator.spec --noconfirm
+
+      - name: Chromium do Playwright (embutido na pasta)
+        run: |
+          mkdir -p dist/WebRP-Extrator/ms-playwright
+          PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" \
+            python -m playwright install chromium
+
+      - name: Launcher e documentação
+        run: |
+          cp build/webrp-extrator.sh dist/WebRP-Extrator/
+          chmod +x dist/WebRP-Extrator/webrp-extrator.sh
+          cp build/LEIA-ME-LINUX.txt dist/WebRP-Extrator/
+          cp .env.example dist/WebRP-Extrator/
+
+      - name: Empacotar tarball
+        run: |
+          tar -czf WebRP-Extrator-linux.tar.gz -C dist WebRP-Extrator
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WebRP-Extrator-linux
+          path: WebRP-Extrator-linux.tar.gz
+          retention-days: 30
+
+  publish-release:
+    name: Publicar no GitHub Releases
+    needs: [build-windows, build-linux]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Criar release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            WebRP-Extrator-windows.zip
+            WebRP-Extrator-linux.tar.gz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,3 +7,6 @@ __pycache__/
 .mypy_cache/
 *.log
 .DS_Store
+dist/
+build/pyinstaller/
+*.spec.bak

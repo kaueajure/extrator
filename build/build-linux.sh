@@ -17,8 +17,16 @@ python -m pip install pyinstaller
 
 pyinstaller build/webrp-extrator.spec --noconfirm
 
+echo "==> Chromium do Playwright (pasta ms-playwright)…"
+mkdir -p dist/WebRP-Extrator/ms-playwright
+PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" \
+  python -m playwright install chromium
+
+cp build/webrp-extrator.sh dist/WebRP-Extrator/
+chmod +x dist/WebRP-Extrator/webrp-extrator.sh
+cp build/LEIA-ME-LINUX.txt dist/WebRP-Extrator/
+cp .env.example dist/WebRP-Extrator/ 2>/dev/null || true
+
 echo ""
 echo "Build concluído: dist/WebRP-Extrator/"
-echo "Distribua a pasta dist/WebRP-Extrator (modo onedir)."
-echo "Na primeira execução, o Chromium do Playwright deve estar instalado:"
-echo "  python -m playwright install chromium"
+echo "Execute: dist/WebRP-Extrator/webrp-extrator.sh"

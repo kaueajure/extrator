@@ -1,0 +1,11 @@
+WebRP Extrator — Linux
+======================
+
+1. Extraia o arquivo: tar -xzf WebRP-Extrator-linux.tar.gz
+2. Copie .env.example para .env e preencha WEBRP_URL e DB_*.
+3. Execute: ./webrp-extrator.sh
+
+Dependências Qt (Ubuntu/Debian), se faltar:
+  sudo apt install libxcb-cursor0 libxkbcommon-x11-0 libegl1
+
+Login: e-mail e senha do painel admin WebRP (perfil desenvolvedor).
