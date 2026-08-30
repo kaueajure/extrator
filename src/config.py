@@ -6,7 +6,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-VERSAO = "1.2.0"
+VERSAO = "1.2.1"
 LIMITE_MAXIMO_RESULTADOS = 100
 URL_PRODUCAO = "https://webriopreto.com"
 

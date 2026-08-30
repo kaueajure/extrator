@@ -1,14 +1,17 @@
 WebRP Extrator — Linux
 ======================
 
-1. Baixe WebRP-Extrator-Setup.run
-2. Torne executável e rode:
-     chmod +x WebRP-Extrator-Setup.run
-     ./WebRP-Extrator-Setup.run
-3. Abra "WebRP Extrator" no menu de aplicativos, ou no terminal:
-     webrp-extrator
+Arquivo: WebRP-Extrator-x86_64.AppImage
 
-Não é necessário configurar .env. O app já aponta para https://webriopreto.com.
+1. Baixe o AppImage
+2. Torne executável e abra:
+     chmod +x WebRP-Extrator-x86_64.AppImage
+     ./WebRP-Extrator-x86_64.AppImage
+
+Não instala nada no sistema. É um app portátil.
+
+Entre com e-mail e senha de desenvolvedor do painel WebRP.
+Não é necessário configurar .env.
 
 Se faltar biblioteca Qt (Ubuntu/Debian):
   sudo apt install libxcb-cursor0 libxkbcommon-x11-0 libegl1

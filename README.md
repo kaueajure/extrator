@@ -78,14 +78,14 @@ Gera **instaladores** Windows e Linux (sem `.zip` / `.tar.gz` para o usuário fi
 **Release oficial:**
 
 ```bash
-git tag v1.2.0
-git push origin v1.2.0
+git tag v1.2.1
+git push origin v1.2.1
 ```
 
 Artefatos em [Releases](https://github.com/kaueajure/extrator/releases):
 
 - `WebRP-Extrator-Setup.exe` — instalador Windows (próximo → concluir → abrir)
-- `WebRP-Extrator-Setup.run` — instalador Linux (`chmod +x` e executar)
+- `WebRP-Extrator-x86_64.AppImage` — app portátil Linux (`chmod +x` e executar; não instala nada)
 
 O Chromium do Playwright já vem embutido. **Não precisa de `.env`** — basta login de desenvolvedor no WebRP.
 
@@ -95,7 +95,7 @@ O Chromium do Playwright já vem embutido. **Não precisa de `.env`** — basta 
 ./instalar
 pyinstaller build/webrp-extrator.spec --noconfirm
 PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" python -m playwright install chromium
-./build/criar-instalador-linux.sh
+./build/criar-appimage-linux.sh
 ```
 
 ### Windows (local)
