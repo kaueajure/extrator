@@ -1,0 +1,6 @@
+playwright>=1.49.0
+httpx>=0.28.0
+python-dotenv>=1.0.0
+PySide6>=6.8.0
+keyring>=25.0.0
+pymysql>=1.1.0

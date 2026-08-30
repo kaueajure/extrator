@@ -1,0 +1,162 @@
+from __future__ import annotations
+
+import re
+import unicodedata
+from dataclasses import dataclass
+
+from src.extrator.ids import id_maps, normalizar_url_maps
+from src.extrator.modelos import LugarExtraido
+from src.servicos.banco import conexao, obter_config_banco
+from src.servicos.webrp import ResultadoImportacao
+
+
+def _normalizar_texto(valor: str) -> str:
+    texto = unicodedata.normalize("NFKD", valor.lower())
+    texto = "".join(car for car in texto if not unicodedata.combining(car))
+    return " ".join(texto.split())
+
+
+def _normalizar_telefone(valor: str | None) -> str:
+    if not valor:
+        return ""
+    return re.sub(r"\D", "", valor)[-11:]
+
+
+@dataclass
+class IndiceLeadsDB:
+    maps_ids: set[str]
+    nomes: set[str]
+    telefones: set[str]
+    total: int = 0
+
+    def contem_url(self, url: str) -> bool:
+        chave = id_maps(normalizar_url_maps(url))
+        return chave in self.maps_ids
+
+    def contem(self, lugar: LugarExtraido) -> bool:
+        if lugar.id and lugar.id in self.maps_ids:
+            return True
+        nome = _normalizar_texto(lugar.nome)
+        if nome and nome in self.nomes:
+            return True
+        telefone = _normalizar_telefone(lugar.telefone)
+        if telefone and telefone in self.telefones:
+            return True
+        return False
+
+    def __len__(self) -> int:
+        return self.total
+
+
+def carregar_indice() -> IndiceLeadsDB:
+    if obter_config_banco() is None:
+        raise RuntimeError("Banco não configurado.")
+    maps_ids: set[str] = set()
+    nomes: set[str] = set()
+    telefones: set[str] = set()
+    total = 0
+    with conexao() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT maps_id, nome, telefone
+                FROM Leads
+                WHERE maps_id IS NOT NULL OR nome IS NOT NULL OR telefone IS NOT NULL
+                """
+            )
+            for linha in cur.fetchall():
+                total += 1
+                maps_id = linha.get("maps_id")
+                if isinstance(maps_id, str) and maps_id.strip():
+                    maps_ids.add(maps_id.strip())
+                nome = linha.get("nome")
+                if isinstance(nome, str) and nome.strip():
+                    nomes.add(_normalizar_texto(nome))
+                telefone = linha.get("telefone")
+                if isinstance(telefone, str):
+                    normalizado = _normalizar_telefone(telefone)
+                    if len(normalizado) >= 8:
+                        telefones.add(normalizado)
+    return IndiceLeadsDB(maps_ids=maps_ids, nomes=nomes, telefones=telefones, total=total)
+
+
+def buscar_usuario_id(email: str) -> int | None:
+    with conexao() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id FROM Usuarios WHERE email = %s AND desenvolvedor = 1 LIMIT 1",
+                (email.strip().lower(),),
+            )
+            linha = cur.fetchone()
+            if not linha:
+                return None
+            return int(linha["id"])
+
+
+def _montar_observacoes(lugar: LugarExtraido) -> str:
+    partes = ["Importado via WebRP-Extrator (Google Maps)."]
+    if lugar.score is not None:
+        partes.append(f"Score do lead: {lugar.score}/100")
+    if lugar.url_referencia:
+        partes.append(f"Maps: {lugar.url_referencia}")
+    if lugar.nota is not None:
+        linha = f"Nota: {lugar.nota}"
+        if lugar.avaliacoes is not None:
+            linha += f" ({lugar.avaliacoes} avaliações)"
+        partes.append(linha)
+    return "\n".join(partes)[:4000]
+
+
+def inserir_lead(lugar: LugarExtraido, usuario_id: int) -> ResultadoImportacao:
+    maps_id = lugar.id or id_maps(lugar.url_referencia or lugar.nome)
+    url_maps = normalizar_url_maps(lugar.url_referencia) if lugar.url_referencia else None
+    try:
+        with conexao() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO Leads (
+                        nome, contato, email, telefone, categoria, endereco, site, responsavel,
+                        observacoes, etapa, valor_estimado, proximo_contato, origem,
+                        maps_id, url_maps, latitude, longitude, criado_por
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (
+                        lugar.nome[:160],
+                        None,
+                        None,
+                        (lugar.telefone or "")[:40] or None,
+                        (lugar.categoria or "")[:120] or None,
+                        (lugar.endereco or "")[:300] or None,
+                        lugar.site or None,
+                        None,
+                        _montar_observacoes(lugar),
+                        "novo",
+                        None,
+                        None,
+                        "extrator",
+                        maps_id,
+                        url_maps[:500] if url_maps else None,
+                        lugar.latitude,
+                        lugar.longitude,
+                        usuario_id,
+                    ),
+                )
+                lead_id = cur.lastrowid
+                cur.execute(
+                    """
+                    INSERT INTO Historico (lead_id, etapa_anterior, etapa_nova, usuario_id)
+                    VALUES (%s, NULL, %s, %s)
+                    """,
+                    (lead_id, "novo", usuario_id),
+                )
+        return ResultadoImportacao(lugar.nome, True, "Lead adicionado ao funil.", 201)
+    except Exception as erro:
+        codigo = getattr(erro, "args", (None,))[0]
+        if codigo == 1062:
+            return ResultadoImportacao(lugar.nome, False, "Esta empresa já está no funil.", 409)
+        return ResultadoImportacao(lugar.nome, False, str(erro), None)

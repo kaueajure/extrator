@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "webrp-extrator"
+version = "1.1.0"
+description = "App desktop para extrair leads do Google Maps e importar no WebRP"
+requires-python = ">=3.11"
+dependencies = [
+  "playwright>=1.49.0",
+  "httpx>=0.28.0",
+  "python-dotenv>=1.0.0",
+  "PySide6>=6.8.0",
+  "keyring>=25.0.0",
+  "pymysql>=1.1.0",
+]
+
+[project.scripts]
+webrp-extrator = "src.ui.app:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]

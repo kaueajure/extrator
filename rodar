@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+if [[ ! -f .venv/bin/activate ]]; then
+  echo "Primeira execução — configurando ambiente…"
+  ./setup.sh
+fi
+
+# shellcheck disable=SC1091
+source .venv/bin/activate
+exec python app.py
