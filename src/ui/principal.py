@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.config import LIMITE_MAXIMO_RESULTADOS, VERSAO, banco_configurado
+from src.config import LIMITE_MAXIMO_RESULTADOS, VERSAO
 from src.extrator.maps import desconectar_google
 from src.extrator.modelos import LugarExtraido, ResultadoExtracao
 from src.extrator.score import FiltrosLead, calcular_score

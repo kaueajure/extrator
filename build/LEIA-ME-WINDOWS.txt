@@ -1,11 +1,11 @@
 WebRP Extrator — Windows
 ========================
 
-1. Extraia esta pasta inteira (ex.: C:\WebRP-Extrator\).
-2. Copie .env.example para .env e preencha WEBRP_URL e DB_* (mesmos dados do painel WebRP).
-3. Inicie pelo atalho: WebRP-Extrator.bat
-   (Não use o .exe direto — o .bat aponta o navegador embutido na pasta ms-playwright.)
+1. Baixe WebRP-Extrator-Setup.exe
+2. Execute o instalador (próximo, próximo, concluir)
+3. Abra "WebRP Extrator" pelo menu Iniciar ou atalho da área de trabalho
+4. Entre com o e-mail e senha de desenvolvedor do painel WebRP
 
-Login: use e-mail e senha do painel admin WebRP (perfil desenvolvedor).
+Não é necessário configurar .env. O app já aponta para https://webriopreto.com.
 
-Se o Maps não abrir, verifique se a pasta ms-playwright existe dentro desta pasta.
+Desinstalar: Configurações do Windows → Aplicativos → WebRP Extrator.

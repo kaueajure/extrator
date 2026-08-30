@@ -2,7 +2,7 @@
 
 Aplicativo **desktop** (Windows e Linux) para extrair empresas no **Google Maps** com **Playwright** e importar leads diretamente no painel **WebRP**.
 
-Distribuído via `extrator.webriopreto.com` (instalador). Não roda na Hostinger — executa no computador do usuário.
+Distribuído via `extrator.webriopreto.com` (página de download no site WebRP oficial). Não roda na Hostinger — executa no computador do usuário.
 
 ## O que faz
 
@@ -53,59 +53,60 @@ sudo apt install python3 python3-pip python3-venv \
 
 Credenciais podem ser salvas no cofre do sistema (“Manter conectado”).
 
-## Variáveis de ambiente (`.env`)
+## Variáveis de ambiente (`.env` — só desenvolvimento)
+
+No instalador oficial **não há `.env`**. Em `./rodar` local:
 
 | Variável | Descrição |
 |---|---|
-| `WEBRP_URL` | URL do WebRP (padrão `https://webriopreto.com`) |
-| `WEBRP_EMAIL` | Pré-preenche login (opcional, dev) |
-| `WEBRP_SENHA` | Pré-preenche login (opcional, dev) |
+| `WEBRP_URL` | URL do WebRP (padrão produção) |
+| `WEBRP_EMAIL` / `WEBRP_SENHA` | Pré-preenche login (opcional) |
+| `DB_*` | Opcional: cruzamento/importação direta MySQL |
 | `GEMINI_API_KEY` | Sugestões via Gemini (opcional) |
-| `GEMINI_MODEL` | Modelo Gemini (padrão `gemini-2.0-flash`) |
 
 ## Build do instalável
 
 ### Automático (GitHub Actions — recomendado)
 
-O repositório gera builds **Windows** e **Linux** na nuvem (sem precisar de Windows local).
+Gera **instaladores** Windows e Linux (sem `.zip` / `.tar.gz` para o usuário final).
 
-**Download manual (teste):**
+**Teste (sem release pública):**
 
-1. GitHub → **Actions** → workflow **Build releases** → **Run workflow**
-2. Ao terminar, baixe os artefatos `WebRP-Extrator-windows` e `WebRP-Extrator-linux`
+1. GitHub → **Actions** → **Build releases** → **Run workflow**
+2. Baixe os artifacts `WebRP-Extrator-windows` (Setup.exe) e `WebRP-Extrator-linux` (Setup.run)
 
-**Release oficial (link para usuários):**
+**Release oficial:**
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
-Isso cria um [GitHub Release](https://github.com/kaueajure/extrator/releases) com:
+Artefatos em [Releases](https://github.com/kaueajure/extrator/releases):
 
-- `WebRP-Extrator-windows.zip` — extrair e abrir `WebRP-Extrator.bat`
-- `WebRP-Extrator-linux.tar.gz` — extrair e rodar `./webrp-extrator.sh`
+- `WebRP-Extrator-Setup.exe` — instalador Windows (próximo → concluir → abrir)
+- `WebRP-Extrator-Setup.run` — instalador Linux (`chmod +x` e executar)
 
-O Chromium do Playwright já vem na pasta `ms-playwright` dentro do pacote.
+O Chromium do Playwright já vem embutido. **Não precisa de `.env`** — basta login de desenvolvedor no WebRP.
 
 ### Linux (local)
 
 ```bash
 ./instalar
-chmod +x build/build-linux.sh
-./build/build-linux.sh
+pyinstaller build/webrp-extrator.spec --noconfirm
+PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" python -m playwright install chromium
+./build/criar-instalador-linux.sh
 ```
-
-Saída em `dist/WebRP-Extrator/`.
 
 ### Windows (local)
 
-Só em máquina Windows, ou use o GitHub Actions acima.
+Só em máquina Windows, ou use o GitHub Actions.
 
 ```powershell
 pip install -e .
 pip install pyinstaller
 pyinstaller build\webrp-extrator.spec --noconfirm
+# Instale Inno Setup 6 e compile build\windows-setup.iss
 ```
 
 ## Estrutura
@@ -127,7 +128,7 @@ WebRP-extrator/
 
 ## Integração com o WebRP
 
-O app **não conecta ao MySQL**. Autentica via `POST /api/admin/login` e cria leads via `POST /api/admin/leads` no servidor WebRP (local ou produção).
+O instalador aponta para `https://webriopreto.com`. Autentica via `POST /api/admin/login`, lista leads via `GET /api/admin/leads` (cruzamento) e cria leads via `POST /api/admin/leads`. Em desenvolvimento local, opcionalmente usa MySQL direto se `DB_*` estiver no `.env`.
 
 ## Aviso
 

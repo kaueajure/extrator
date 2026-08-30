@@ -38,22 +38,16 @@ jobs:
           $env:PLAYWRIGHT_BROWSERS_PATH = $browsers
           python -m playwright install chromium
 
-      - name: Launcher e documentação
+      - name: Inno Setup
         shell: pwsh
         run: |
-          Copy-Item build/WebRP-Extrator.bat dist/WebRP-Extrator/
-          Copy-Item build/LEIA-ME-WINDOWS.txt dist/WebRP-Extrator/
-          Copy-Item .env.example dist/WebRP-Extrator/
-
-      - name: Empacotar ZIP
-        shell: pwsh
-        run: |
-          Compress-Archive -Path dist/WebRP-Extrator -DestinationPath WebRP-Extrator-windows.zip -Force
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" build\windows-setup.iss
 
       - uses: actions/upload-artifact@v4
         with:
           name: WebRP-Extrator-windows
-          path: WebRP-Extrator-windows.zip
+          path: WebRP-Extrator-Setup.exe
           retention-days: 30
 
   build-linux:
@@ -87,21 +81,15 @@ jobs:
           PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" \
             python -m playwright install chromium
 
-      - name: Launcher e documentação
+      - name: Instalador .run
         run: |
-          cp build/webrp-extrator.sh dist/WebRP-Extrator/
-          chmod +x dist/WebRP-Extrator/webrp-extrator.sh
-          cp build/LEIA-ME-LINUX.txt dist/WebRP-Extrator/
-          cp .env.example dist/WebRP-Extrator/
-
-      - name: Empacotar tarball
-        run: |
-          tar -czf WebRP-Extrator-linux.tar.gz -C dist WebRP-Extrator
+          chmod +x build/criar-instalador-linux.sh build/webrp-extrator.sh
+          VERSAO=1.2.0 ./build/criar-instalador-linux.sh
 
       - uses: actions/upload-artifact@v4
         with:
           name: WebRP-Extrator-linux
-          path: WebRP-Extrator-linux.tar.gz
+          path: WebRP-Extrator-Setup.run
           retention-days: 30
 
   publish-release:
@@ -118,8 +106,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            WebRP-Extrator-windows.zip
-            WebRP-Extrator-linux.tar.gz
+            WebRP-Extrator-Setup.exe
+            WebRP-Extrator-Setup.run
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

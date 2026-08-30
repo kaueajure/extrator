@@ -68,13 +68,10 @@ class ExtracaoWorker(QThread):
 
             indice: IndiceLeadsWebRP | None = None
             if self.cruzar_webrp:
-                if not banco_configurado():
-                    raise RuntimeError(
-                        "Configure DB_HOST, DB_USER, DB_PASSWORD e DB_NAME no .env "
-                        "para cruzar leads com o banco WebRP."
-                    )
-                on_log("Carregando leads do banco WebRP…")
-                indice = IndiceLeadsWebRP.carregar()
+                if self.cliente is None and not banco_configurado():
+                    raise RuntimeError("Faça login no WebRP para cruzar leads com o funil.")
+                on_log("Carregando leads do WebRP…")
+                indice = IndiceLeadsWebRP.carregar(self.cliente)
                 on_log(f"{len(indice)} lead(s) no funil — duplicatas serão ignoradas.")
                 if deve_cancelar():
                     on_log("Extração cancelada.")

@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from src.extrator.ids import id_maps, normalizar_url_maps
 from src.extrator.modelos import LugarExtraido
 from src.servicos.banco import conexao, obter_config_banco
-from src.servicos.webrp import ResultadoImportacao
 
 
 def _normalizar_texto(valor: str) -> str:
@@ -107,7 +106,9 @@ def _montar_observacoes(lugar: LugarExtraido) -> str:
     return "\n".join(partes)[:4000]
 
 
-def inserir_lead(lugar: LugarExtraido, usuario_id: int) -> ResultadoImportacao:
+def inserir_lead(lugar: LugarExtraido, usuario_id: int):
+    from src.servicos.webrp import ResultadoImportacao
+
     maps_id = lugar.id or id_maps(lugar.url_referencia or lugar.nome)
     url_maps = normalizar_url_maps(lugar.url_referencia) if lugar.url_referencia else None
     try:

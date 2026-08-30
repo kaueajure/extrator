@@ -61,6 +61,18 @@ class ClienteWebRP:
         except (RuntimeError, httpx.HTTPError):
             return False
 
+    def listar_leads(self) -> list[dict]:
+        resposta = self._requisitar("GET", f"{self.base_url}/api/admin/leads")
+        if resposta.status_code == 401:
+            raise SessaoExpirada("Sessão WebRP expirada. Faça login novamente.")
+        if resposta.status_code != 200:
+            dados = resposta.json() if resposta.content else {}
+            mensagem = dados.get("mensagem", "Falha ao listar leads do WebRP.")
+            raise RuntimeError(mensagem)
+        dados = resposta.json() if resposta.content else {}
+        leads = dados.get("leads", [])
+        return leads if isinstance(leads, list) else []
+
     def _requisitar(self, metodo: str, url: str, **kwargs) -> httpx.Response:
         resposta = self.cliente.request(metodo, url, **kwargs)
         if resposta.status_code == 401 and self.email and self.senha:

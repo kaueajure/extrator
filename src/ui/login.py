@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.config import banco_configurado, chave_gemini, credenciais_env, webrp_url_padrao
+from src.config import banco_configurado, chave_gemini, credenciais_env, empacotado, webrp_url_padrao
 from src.servicos.sessao import CredenciaisSalvas, ler_credenciais, salvar_credenciais
 from src.ui.tema import FOLHA_ESTILO, criar_campo, criar_logotipo
 from src.ui.workers import LoginWorker
@@ -119,7 +119,7 @@ class JanelaLogin(QDialog):
 
         titulo = QLabel("Entre na sua conta")
         titulo.setObjectName("loginTitulo")
-        subtitulo = QLabel("Use as credenciais do painel WebRP para prospectar e importar leads.")
+        subtitulo = QLabel("Use as credenciais de desenvolvedor do painel WebRP.")
         subtitulo.setObjectName("loginSubtitulo")
         subtitulo.setWordWrap(True)
 
@@ -144,17 +144,21 @@ class JanelaLogin(QDialog):
         status_ia = QLabel(
             "Gemini ativo para sugestões"
             if chave_gemini()
-            else "Sugestões locais (sem GEMINI_API_KEY)"
+            else "Sugestões locais ativas"
         )
         status_ia.setObjectName("loginSubtitulo")
 
-        aviso_banco = QLabel(
-            "Banco MySQL configurado — cruzamento e importação diretos."
-            if banco_configurado()
-            else "Configure DB_* no .env para cruzar/importar via banco."
+        modo = QLabel(
+            "Conectado a webriopreto.com — cruzamento e importação via painel."
+            if empacotado()
+            else (
+                "Banco MySQL configurado — cruzamento e importação diretos."
+                if banco_configurado()
+                else "Cruzamento e importação via API do WebRP."
+            )
         )
-        aviso_banco.setObjectName("loginSubtitulo")
-        aviso_banco.setWordWrap(True)
+        modo.setObjectName("loginSubtitulo")
+        modo.setWordWrap(True)
 
         seguranca = QLabel("A sessão expira após 8 horas e será renovada automaticamente quando possível.")
         seguranca.setObjectName("loginSeguranca")
@@ -163,13 +167,16 @@ class JanelaLogin(QDialog):
         conteudo_layout.addWidget(titulo)
         conteudo_layout.addWidget(subtitulo)
         conteudo_layout.addSpacing(8)
-        conteudo_layout.addWidget(criar_campo("URL do WebRP", self.campo_url))
+        if not empacotado():
+            conteudo_layout.addWidget(criar_campo("URL do WebRP", self.campo_url))
+        else:
+            self.campo_url.hide()
         conteudo_layout.addWidget(criar_campo("E-mail", self.campo_email))
         conteudo_layout.addWidget(criar_campo("Senha", self.campo_senha))
         conteudo_layout.addWidget(self.check_lembrar)
         conteudo_layout.addWidget(self.botao_entrar)
         conteudo_layout.addWidget(status_ia)
-        conteudo_layout.addWidget(aviso_banco)
+        conteudo_layout.addWidget(modo)
         conteudo_layout.addWidget(seguranca)
 
         acesso_layout.addWidget(cabecalho)
@@ -197,7 +204,7 @@ class JanelaLogin(QDialog):
 
         salvas = ler_credenciais()
         if salvas:
-            if salvas.webrp_url:
+            if salvas.webrp_url and not empacotado():
                 self.campo_url.setText(salvas.webrp_url)
             if salvas.email:
                 self.campo_email.setText(salvas.email)
@@ -209,12 +216,16 @@ class JanelaLogin(QDialog):
         if self.worker_login and self.worker_login.isRunning():
             return
 
-        url = self.campo_url.text().strip().rstrip("/")
+        url = webrp_url_padrao() if empacotado() else self.campo_url.text().strip().rstrip("/")
         email = self.campo_email.text().strip()
         senha = self.campo_senha.text()
 
         if len(url) < 4 or len(email) < 5 or len(senha) < 8:
-            QMessageBox.warning(self, "Campos inválidos", "Preencha URL, e-mail e senha (mín. 8 caracteres).")
+            QMessageBox.warning(
+                self,
+                "Campos inválidos",
+                "Preencha e-mail e senha (mín. 8 caracteres).",
+            )
             return
 
         self.botao_entrar.setEnabled(False)
@@ -254,7 +265,7 @@ class JanelaLogin(QDialog):
             QMessageBox.critical(
                 self,
                 "Sem conexão",
-                "Não foi possível conectar ao WebRP. Verifique a URL e sua internet.",
+                "Não foi possível conectar ao WebRP. Verifique sua internet.",
             )
         else:
             QMessageBox.critical(self, "Falha no login", mensagem)
