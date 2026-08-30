@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Baixe o WebRP Extrator — prospecte empresas no Google Maps e importe leads no painel Web Rio Preto." />
+    <title>WebRP Extrator — Download</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;680&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --fundo: #f3f4f6;
+        --superficie: #ffffff;
+        --superficie-suave: #f8f9fa;
+        --texto: #1a1d24;
+        --texto-suave: #626873;
+        --texto-fraco: #747a84;
+        --borda: #dde0e5;
+        --indigo: #3730e0;
+        --indigo-forte: #2d27bd;
+        --indigo-suave: #eeedff;
+        --menta: #0b826e;
+        --menta-clara: #dff7f1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        font-size: 15px;
+        line-height: 1.55;
+        color: var(--texto);
+        background: var(--fundo);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      ::selection {
+        background: #c8c5ff;
+        color: #171246;
+      }
+
+      a {
+        color: var(--indigo);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .cabecalho {
+        border-bottom: 1px solid var(--borda);
+        background: rgb(255 255 255 / 96%);
+        backdrop-filter: blur(12px);
+      }
+
+      .cabecalho__linha {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .marca {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 680;
+        letter-spacing: -0.04em;
+        font-size: 16px;
+      }
+
+      .marca span:last-child {
+        color: var(--indigo);
+      }
+
+      .etiqueta {
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #717680;
+        border: 1px solid #c9cdd4;
+        border-radius: 5px;
+        padding: 3px 7px;
+      }
+
+      .link-painel {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--texto-suave);
+      }
+
+      .link-painel:hover {
+        color: var(--indigo);
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 28px;
+        margin-bottom: 28px;
+      }
+
+      @media (min-width: 768px) {
+        .hero {
+          grid-template-columns: 1.1fr 0.9fr;
+          align-items: start;
+        }
+      }
+
+      .hero__texto h1 {
+        margin: 0 0 12px;
+        font-size: clamp(1.75rem, 4vw, 2.25rem);
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+        font-weight: 600;
+      }
+
+      .hero__texto p {
+        margin: 0;
+        color: var(--texto-suave);
+        max-width: 36em;
+      }
+
+      .painel {
+        background: var(--superficie);
+        border: 1px solid var(--borda);
+        border-radius: 12px;
+        padding: 22px;
+      }
+
+      .painel h2 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+      }
+
+      .painel > p {
+        margin: 0 0 18px;
+        font-size: 13px;
+        color: var(--texto-suave);
+      }
+
+      .botoes {
+        display: grid;
+        gap: 10px;
+      }
+
+      .botao {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 630;
+        text-decoration: none;
+        transition: background 0.18s ease, box-shadow 0.18s ease;
+      }
+
+      .botao--primario {
+        background: var(--indigo);
+        color: #fff;
+        box-shadow: 0 8px 22px -14px rgb(55 48 224 / 90%);
+      }
+
+      .botao--primario:hover {
+        background: var(--indigo-forte);
+        text-decoration: none;
+      }
+
+      .botao--secundario {
+        background: #fff;
+        color: #242730;
+        border: 1px solid #d2d5da;
+      }
+
+      .botao--secundario:hover {
+        background: var(--superficie-suave);
+        text-decoration: none;
+      }
+
+      .botao svg {
+        flex-shrink: 0;
+      }
+
+      .nota {
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--texto-fraco);
+      }
+
+      .grade {
+        display: grid;
+        gap: 16px;
+      }
+
+      @media (min-width: 640px) {
+        .grade {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .secao {
+        background: var(--superficie);
+        border: 1px solid var(--borda);
+        border-radius: 10px;
+        padding: 20px;
+      }
+
+      .secao h3 {
+        margin: 0 0 12px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      ol,
+      ul {
+        margin: 0;
+        padding-left: 1.25em;
+        color: var(--texto-suave);
+        font-size: 13px;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      code {
+        font-size: 12px;
+        background: var(--superficie-suave);
+        border: 1px solid var(--borda);
+        border-radius: 5px;
+        padding: 1px 6px;
+      }
+
+      .destaque {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: var(--indigo-suave);
+        border: 1px solid #c8c5ff;
+        font-size: 13px;
+        color: #3730e0;
+      }
+
+      .destaque--menta {
+        background: var(--menta-clara);
+        border-color: #a7e8d8;
+        color: var(--menta);
+      }
+
+      .rodape {
+        margin-top: 32px;
+        padding-top: 20px;
+        border-top: 1px solid var(--borda);
+        font-size: 12px;
+        color: var(--texto-fraco);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="cabecalho">
+      <div class="cabecalho__linha">
+        <div class="marca">
+          <span>Web</span><span>RioPreto</span>
+          <span class="etiqueta">Extrator</span>
+        </div>
+        <a class="link-painel" href="https://webriopreto.com/admin" target="_blank" rel="noopener">Abrir painel WebRP</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero__texto">
+          <h1>Prospecte no Google Maps. Importe no WebRP.</h1>
+          <p>
+            Aplicativo desktop para buscar empresas por região, filtrar leads com score
+            e enviar direto ao funil comercial do painel Web Rio Preto.
+          </p>
+        </div>
+
+        <div class="painel">
+          <h2>Download</h2>
+          <p>Escolha o sistema do seu computador. Não precisa instalar Python.</p>
+          <div class="botoes">
+            <a
+              class="botao botao--primario"
+              href="https://github.com/kaueajure/extrator/releases/latest/download/WebRP-Extrator-windows.zip"
+              download
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 4h16v12H4V4Z" stroke="currentColor" stroke-width="1.6" />
+                <path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              Windows (.zip)
+            </a>
+            <a
+              class="botao botao--secundario"
+              href="https://github.com/kaueajure/extrator/releases/latest/download/WebRP-Extrator-linux.tar.gz"
+              download
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
+                <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              Linux (.tar.gz)
+            </a>
+          </div>
+          <p class="nota">
+            Versão publicada via
+            <a href="https://github.com/kaueajure/extrator/releases" target="_blank" rel="noopener">GitHub Releases</a>.
+            Requer login de desenvolvedor no WebRP.
+          </p>
+        </div>
+      </section>
+
+      <div class="grade">
+        <section class="secao">
+          <h3>Windows</h3>
+          <ol>
+            <li>Extraia o arquivo <code>.zip</code> em uma pasta (ex.: <code>C:\WebRP-Extrator</code>).</li>
+            <li>Copie <code>.env.example</code> para <code>.env</code> e preencha URL e banco.</li>
+            <li>Abra <strong>WebRP-Extrator.bat</strong> (não clique só no .exe).</li>
+          </ol>
+          <div class="destaque">Use sempre o arquivo .bat — ele aponta o navegador embutido na pasta.</div>
+        </section>
+
+        <section class="secao">
+          <h3>Linux</h3>
+          <ol>
+            <li>Extraia: <code>tar -xzf WebRP-Extrator-linux.tar.gz</code></li>
+            <li>Configure o <code>.env</code> com as mesmas credenciais do painel.</li>
+            <li>Execute: <code>./webrp-extrator.sh</code></li>
+          </ol>
+          <div class="destaque destaque--menta">
+            Ubuntu/Debian: se faltar biblioteca Qt —
+            <code>sudo apt install libxcb-cursor0 libxkbcommon-x11-0 libegl1</code>
+          </div>
+        </section>
+      </div>
+
+      <section class="secao" style="margin-top: 16px">
+        <h3>Configuração do .env</h3>
+        <ul>
+          <li><code>WEBRP_URL</code> — URL do painel (ex.: <code>https://webriopreto.com</code>)</li>
+          <li><code>DB_HOST</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code>, <code>DB_NAME</code> — mesmo MySQL do WebRP (cruzamento e importação)</li>
+          <li><code>GEMINI_API_KEY</code> — opcional, melhora sugestões de busca</li>
+        </ul>
+      </section>
+
+      <footer class="rodape">
+        Web Rio Preto · WebRP Extrator · Uso interno · São José do Rio Preto, SP
+      </footer>
+    </main>
+  </body>
+</html>
