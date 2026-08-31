@@ -27,6 +27,11 @@ jobs:
           pip install -e .
           pip install pyinstaller
 
+      - name: Ícones do app
+        run: |
+          pip install pillow
+          python build/preparar-icones.py
+
       - name: PyInstaller
         run: pyinstaller build/webrp-extrator.spec --noconfirm
 
@@ -71,6 +76,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
           pip install pyinstaller
+
+      - name: Ícones do app
+        run: |
+          pip install pillow
+          python build/preparar-icones.py
 
       - name: PyInstaller
         run: pyinstaller build/webrp-extrator.spec --noconfirm

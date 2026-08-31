@@ -1,19 +1,31 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
 from pathlib import Path
 
 raiz = Path(SPECPATH).parent
+projeto = raiz.parent
+icones = projeto / "src" / "recursos" / "icons"
+ico = raiz / "webrp-extrator.ico"
+
+datas = []
+if icones.is_dir():
+    for png in sorted(icones.glob("*.png")):
+        datas.append((str(png), "recursos/icons"))
+
+icon_exe = str(ico) if sys.platform == "win32" and ico.is_file() else None
 
 a = Analysis(
-    [str(raiz / "app.py")],
-    pathex=[str(raiz)],
+    [str(projeto / "app.py")],
+    pathex=[str(projeto)],
     binaries=[],
-    datas=[],
+    datas=datas,
     hiddenimports=[
         "src.ui.app",
         "src.ui.login",
         "src.ui.principal",
         "src.ui.workers",
         "src.ui.tema",
+        "src.ui.icone",
         "src.ui.popup_sugestoes",
         "src.servicos.webrp",
         "src.servicos.sugestoes",
@@ -61,6 +73,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=icon_exe,
 )
 
 coll = COLLECT(

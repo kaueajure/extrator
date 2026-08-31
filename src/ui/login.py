@@ -17,7 +17,8 @@ from PySide6.QtWidgets import (
 
 from src.config import banco_configurado, chave_gemini, credenciais_env, empacotado, webrp_url_padrao
 from src.servicos.sessao import CredenciaisSalvas, ler_credenciais, salvar_credenciais
-from src.ui.tema import FOLHA_ESTILO, criar_botao, criar_campo, criar_logotipo
+from src.ui.icone import aplicar_icone_janela
+from src.ui.tema import criar_botao, criar_campo, criar_logotipo, criar_opcao, folha_estilo
 from src.ui.workers import LoginWorker
 
 
@@ -31,8 +32,9 @@ class JanelaLogin(QDialog):
         self.setObjectName("dialogLogin")
         self.setWindowTitle("WebRP Extrator — Entrar")
         self.setMinimumSize(900, 650)
+        aplicar_icone_janela(self)
         self.resize(1080, 650)
-        self.setStyleSheet(FOLHA_ESTILO)
+        self.setStyleSheet(folha_estilo())
 
         painel = QFrame()
         painel.setObjectName("loginPainel")
@@ -131,7 +133,7 @@ class JanelaLogin(QDialog):
         self.campo_senha.setEchoMode(QLineEdit.EchoMode.Password)
         self.campo_senha.setPlaceholderText("Senha do painel admin")
 
-        self.check_lembrar = QCheckBox("Manter conectado neste computador")
+        self.check_lembrar = criar_opcao("Manter conectado neste computador")
         self.check_lembrar.setChecked(True)
 
         self.botao_entrar = criar_botao("Entrar", "primario")

@@ -40,9 +40,9 @@ from src.servicos.perfil_google import sessao_marcada, texto_status
 from src.servicos.sessao import FiltrosSalvos, ler_filtros, salvar_filtros
 from src.servicos.sugestoes import sugestoes_locais_rapidas
 from src.servicos.webrp import ClienteWebRP, SessaoExpirada
+from src.ui.icone import aplicar_icone_janela
 from src.ui.popup_sugestoes import PopupSugestoes
 from src.ui.tema import (
-    FOLHA_ESTILO,
     criar_alternador,
     criar_barra_resultados,
     criar_barra_rodape,
@@ -50,9 +50,12 @@ from src.ui.tema import (
     criar_campo,
     criar_etiqueta_admin,
     criar_grupo_botoes,
+    criar_linha_opcoes,
     criar_logotipo,
+    criar_opcao,
     criar_pagina_admin,
     criar_painel,
+    folha_estilo,
 )
 from src.ui.workers import ExtracaoWorker, GoogleLoginWorker, ImportacaoWorker, SugestaoWorker
 
@@ -81,7 +84,8 @@ class JanelaPrincipal(QMainWindow):
         self.setWindowTitle("WebRP Extrator")
         self.setMinimumSize(1100, 680)
         self.resize(1280, 780)
-        self.setStyleSheet(FOLHA_ESTILO)
+        self.setStyleSheet(folha_estilo())
+        aplicar_icone_janela(self)
 
         pagina, layout_pagina = criar_pagina_admin()
         pagina.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -241,8 +245,7 @@ class JanelaPrincipal(QMainWindow):
             self.btn_nav_invisivel,
             self.grupo_navegador,
         ) = criar_alternador("Visível", "Invisível", esquerda_ativa=True)
-        self.btn_nav_visivel.clicked.connect(self._navegador_alterado)
-        self.btn_nav_invisivel.clicked.connect(self._navegador_alterado)
+        self.grupo_navegador.idClicked.connect(self._navegador_clicado)
 
         self.botao_extrair = criar_botao("Extrair dados", "primario", 120)
         self.botao_extrair.clicked.connect(self._iniciar_extracao)
@@ -275,10 +278,9 @@ class JanelaPrincipal(QMainWindow):
         google.setContentsMargins(10, 8, 10, 8)
         google.setSpacing(8)
 
-        self.check_perfil_google = QCheckBox("Sessão Google")
-        self.check_perfil_google.setObjectName("opcaoCompacta")
-        self.check_perfil_google.setToolTip(
-            "Mantém cookies e login do Google neste computador para reduzir bloqueios no Maps."
+        self.check_perfil_google = criar_opcao(
+            "Sessão Google",
+            "Mantém cookies e login do Google neste computador para reduzir bloqueios no Maps.",
         )
         self.check_perfil_google.stateChanged.connect(self._preferencias_alteradas)
         self.check_perfil_google.stateChanged.connect(self._atualizar_status_google)
@@ -298,31 +300,23 @@ class JanelaPrincipal(QMainWindow):
         google.addWidget(self.btn_google_sair)
         layout.addWidget(faixa_google)
 
-        opcoes = QWidget()
-        opcoes.setObjectName("linhaOpcoes")
-        opcoes_layout = QHBoxLayout(opcoes)
-        opcoes_layout.setContentsMargins(0, 0, 0, 0)
-        opcoes_layout.setSpacing(16)
-
-        self.check_continuar = QCheckBox("Continuar busca")
-        self.check_continuar.setObjectName("opcaoCompacta")
-        self.check_continuar.setToolTip("Na mesma consulta, pula lugares já extraídos e pega os próximos.")
-        self.check_cruzar = QCheckBox("Ignorar leads no WebRP")
-        self.check_cruzar.setObjectName("opcaoCompacta")
-        self.check_cruzar.setToolTip("Cruza com o funil antes de exibir resultados.")
-        self.check_variada_auto = QCheckBox("Busca variada após importar")
-        self.check_variada_auto.setObjectName("opcaoCompacta")
-        self.check_variada_auto.setToolTip("Após importar, sugere automaticamente outro termo de busca.")
+        self.check_continuar = criar_opcao(
+            "Continuar busca",
+            "Na mesma consulta, pula lugares já extraídos e pega os próximos.",
+        )
+        self.check_cruzar = criar_opcao(
+            "Ignorar leads no WebRP",
+            "Cruza com o funil antes de exibir resultados.",
+        )
+        self.check_variada_auto = criar_opcao(
+            "Busca variada após importar",
+            "Após importar, sugere automaticamente outro termo de busca.",
+        )
         for item in (self.check_continuar, self.check_cruzar, self.check_variada_auto):
             item.stateChanged.connect(self._preferencias_alteradas)
-        opcoes_layout.addWidget(self.check_continuar)
-        opcoes_layout.addWidget(self.check_cruzar)
-        opcoes_layout.addWidget(self.check_variada_auto)
-        opcoes_layout.addStretch()
-        layout.addWidget(opcoes)
+        layout.addWidget(criar_linha_opcoes(self.check_continuar, self.check_cruzar, self.check_variada_auto))
 
-        self.check_sem_site = QCheckBox("Apenas sem site")
-        self.check_sem_site.setObjectName("opcaoCompacta")
+        self.check_sem_site = criar_opcao("Apenas sem site")
         self.campo_max_avaliacoes = QLineEdit()
         self.campo_max_avaliacoes.setPlaceholderText("200")
         self.campo_max_avaliacoes.setFixedWidth(84)
@@ -543,9 +537,15 @@ class JanelaPrincipal(QMainWindow):
         self.btn_nav_visivel.setChecked(visivel)
         self.btn_nav_invisivel.setChecked(not visivel)
 
-    def _navegador_alterado(self) -> None:
-        if not self.btn_nav_visivel.isChecked() and not self.btn_nav_invisivel.isChecked():
+    def _navegador_clicado(self, botao_id: int) -> None:
+        visivel = botao_id == 0
+        if not visivel and self.check_perfil_google.isChecked():
             self._definir_navegador_visivel(True)
+            self.label_progresso.setText(
+                "Com «Sessão Google» ativa o navegador precisa ficar visível."
+            )
+            return
+        self._definir_navegador_visivel(visivel)
         self._preferencias_alteradas()
 
     def _atualizar_status_google(self) -> None:
@@ -553,10 +553,11 @@ class JanelaPrincipal(QMainWindow):
         self.btn_google_sair.setEnabled(sessao_marcada())
         if self.check_perfil_google.isChecked():
             self._definir_navegador_visivel(True)
-            self.btn_nav_invisivel.setEnabled(False)
+            self.btn_nav_invisivel.setEnabled(True)
             self.btn_nav_visivel.setEnabled(True)
             self.alternador_navegador.setToolTip(
-                "Com «Sessão Google» ativa o navegador precisa ficar visível para manter o login."
+                "Com «Sessão Google» ativa o modo Invisível não está disponível — "
+                "o Playwright precisa de janela visível para manter o login."
             )
         else:
             self.btn_nav_visivel.setEnabled(True)

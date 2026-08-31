@@ -6,7 +6,7 @@ RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$RAIZ/dist/WebRP-Extrator"
 APPDIR="$RAIZ/dist/WebRP-Extrator.AppDir"
 SAIDA="$RAIZ/WebRP-Extrator-x86_64.AppImage"
-VERSAO="${VERSAO:-1.2.4}"
+VERSAO="${VERSAO:-1.2.6}"
 
 if [[ ! -d "$DIST" ]]; then
   echo "Pasta dist/WebRP-Extrator não encontrada. Rode o PyInstaller antes."
@@ -38,10 +38,16 @@ Icon=webrp-extrator
 Comment=Prospecte no Google Maps e importe leads no WebRP
 Categories=Office;Network;
 Terminal=false
+StartupWMClass=WebRP-Extrator
 EOF
 
-# Ícone para AppImage e .deb
-python3 "$RAIZ/build/gerar-icone.py" "$APPDIR/webrp-extrator.png"
+if [[ ! -f "$RAIZ/src/recursos/icons/webrp-extrator.png" ]]; then
+  echo "Ícones não encontrados. Rode: python build/preparar-icones.py"
+  exit 1
+fi
+
+cp "$RAIZ/src/recursos/icons/webrp-extrator.png" "$APPDIR/webrp-extrator.png"
+cp "$RAIZ/src/recursos/icons/webrp-extrator.png" "$APPDIR/.DirIcon"
 
 # appimagetool (sem FUSE na criação)
 TOOL="$RAIZ/dist/appimagetool"

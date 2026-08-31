@@ -39,6 +39,40 @@ python -m pip install -e .
 echo "==> Instalando Chromium do Playwright…"
 python -m playwright install chromium
 
+echo "==> Gerando ícones do app…"
+python -m pip install pillow -q
+python build/preparar-icones.py
+
+if [[ "$(uname -s)" == "Linux" ]]; then
+  echo "==> Registrando ícone no sistema (barra de tarefas / dock)…"
+  RAIZ="$(pwd)"
+  ICONES="$RAIZ/src/recursos/icons"
+  for tamanho in 16 32 48 64 128 256; do
+    mkdir -p "$HOME/.local/share/icons/hicolor/${tamanho}x${tamanho}/apps"
+    cp "$ICONES/icone-${tamanho}.png" \
+      "$HOME/.local/share/icons/hicolor/${tamanho}x${tamanho}/apps/webrp-extrator.png"
+  done
+  mkdir -p "$HOME/.local/share/applications"
+  cat > "$HOME/.local/share/applications/webrp-extrator.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=WebRP Extrator
+Comment=Prospecte no Google Maps e importe leads no WebRP
+Exec=bash -c "cd '$RAIZ' && exec -a WebRP-Extrator '$RAIZ/.venv/bin/python' '$RAIZ/app.py'"
+Path=$RAIZ
+Icon=webrp-extrator
+Categories=Office;Network;
+Terminal=false
+StartupWMClass=WebRP-Extrator
+EOF
+  if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+  fi
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+  fi
+fi
+
 if [[ ! -f .env ]]; then
   cp .env.example .env
   echo "==> Arquivo .env criado a partir de .env.example"

@@ -5,11 +5,18 @@ set -euo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$RAIZ/dist/WebRP-Extrator"
 STAGING="$RAIZ/dist/deb-root"
-VERSAO="${VERSAO:-1.2.4}"
+VERSAO="${VERSAO:-1.2.6}"
 SAIDA="$RAIZ/WebRP-Extrator_amd64.deb"
 
 if [[ ! -d "$DIST" ]]; then
   echo "Pasta dist/WebRP-Extrator não encontrada. Rode o PyInstaller antes."
+  exit 1
+fi
+
+ICONES="$RAIZ/src/recursos/icons"
+
+if [[ ! -d "$ICONES" ]]; then
+  echo "Ícones não encontrados. Rode: python build/preparar-icones.py"
   exit 1
 fi
 
@@ -23,10 +30,12 @@ mkdir -p "$STAGING/DEBIAN"
 mkdir -p "$STAGING/opt/WebRP-Extrator"
 mkdir -p "$STAGING/usr/bin"
 mkdir -p "$STAGING/usr/share/applications"
-mkdir -p "$STAGING/usr/share/icons/hicolor/48x48/apps"
+mkdir -p "$STAGING/usr/share/icons/hicolor"
 
 cp -a "$DIST"/. "$STAGING/opt/WebRP-Extrator/"
 chmod +x "$STAGING/opt/WebRP-Extrator/WebRP-Extrator" 2>/dev/null || true
+mkdir -p "$STAGING/opt/WebRP-Extrator/recursos/icons"
+cp "$ICONES"/*.png "$STAGING/opt/WebRP-Extrator/recursos/icons/"
 
 cat > "$STAGING/usr/bin/WebRP-Extrator" <<'EOF'
 #!/bin/bash
@@ -48,7 +57,11 @@ Terminal=false
 StartupWMClass=WebRP-Extrator
 EOF
 
-python3 "$RAIZ/build/gerar-icone.py" "$STAGING/usr/share/icons/hicolor/48x48/apps/webrp-extrator.png"
+for tamanho in 16 32 48 64 128 256; do
+  mkdir -p "$STAGING/usr/share/icons/hicolor/${tamanho}x${tamanho}/apps"
+  cp "$ICONES/icone-${tamanho}.png" \
+    "$STAGING/usr/share/icons/hicolor/${tamanho}x${tamanho}/apps/webrp-extrator.png"
+done
 
 INSTALLED_KB="$(du -sk "$STAGING/opt/WebRP-Extrator" | awk '{print int($1)}')"
 

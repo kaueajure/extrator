@@ -1,6 +1,6 @@
 ; Instalador Windows do WebRP Extrator (Inno Setup 6)
 #define MyAppName "WebRP Extrator"
-#define MyAppVersion "1.2.4"
+#define MyAppVersion "1.2.6"
 #define MyAppPublisher "Web Rio Preto"
 #define MyAppURL "https://extrator.webriopreto.com"
 #define MyAppExeName "WebRP-Extrator.exe"
@@ -17,7 +17,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..
 OutputBaseFilename=WebRP-Extrator-Setup
-SetupIconFile=
+SetupIconFile=..\build\webrp-extrator.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

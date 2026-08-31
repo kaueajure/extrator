@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
+    QCheckBox,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -348,13 +351,16 @@ QWidget#alternador {
     background: #eef0f3;
     border: 1px solid #d2d5da;
     border-radius: 8px;
+    min-width: 200px;
+    max-width: 240px;
 }
 
 QPushButton#alternadorOpcao {
-    min-height: 34px;
-    max-height: 34px;
-    padding: 0 14px;
-    margin: 2px;
+    min-height: 32px;
+    max-height: 32px;
+    min-width: 0;
+    padding: 0 10px;
+    margin: 0;
     border: 1px solid transparent;
     border-radius: 6px;
     background: transparent;
@@ -363,7 +369,7 @@ QPushButton#alternadorOpcao {
     font-weight: 560;
 }
 
-QPushButton#alternadorOpcao:hover:!checked {
+QPushButton#alternadorOpcao:hover {
     background: #e4e6ea;
     color: #1a1d24;
 }
@@ -377,7 +383,7 @@ QPushButton#alternadorOpcao:checked {
 
 QPushButton#alternadorOpcao:disabled {
     background: transparent;
-    color: #a8adb6;
+    color: #b8bcc4;
     border-color: transparent;
 }
 
@@ -455,9 +461,91 @@ QWidget#linhaOpcoes {
     background: transparent;
 }
 
-QCheckBox#opcaoCompacta {
-    font-size: 11px;
+QFrame#faixaOpcoes {
+    background: #f8f9fa;
+    border: 1px solid #eef0f3;
+    border-radius: 8px;
+}
+
+/* ---- Checkbox ---- */
+QCheckBox#opcaoApp {
+    spacing: 10px;
     color: #4e535c;
+    font-size: 11px;
+    font-weight: 500;
+    min-height: 28px;
+    padding: 4px 0;
+}
+
+QCheckBox#opcaoApp::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid #c9cdd4;
+    background: #ffffff;
+}
+
+QCheckBox#opcaoApp::indicator:hover {
+    border-color: #8b90f5;
+}
+
+QCheckBox#opcaoApp::indicator:checked {
+    background: #3730e0;
+    border-color: #3730e0;
+    image: url(__CHECKBOX_CHECK__);
+}
+
+QCheckBox#opcaoApp::indicator:disabled {
+    background: #f3f4f6;
+    border-color: #dde0e5;
+}
+
+QCheckBox#opcaoApp::indicator:checked:disabled {
+    background: #b6b3f2;
+    border-color: #b6b3f2;
+}
+
+QCheckBox#opcaoApp:disabled {
+    color: #a8adb6;
+}
+
+QCheckBox {
+    spacing: 10px;
+    color: #4e535c;
+    font-size: 11px;
+    min-height: 28px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid #c9cdd4;
+    background: #ffffff;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #8b90f5;
+}
+
+QCheckBox::indicator:checked {
+    background: #3730e0;
+    border-color: #3730e0;
+    image: url(__CHECKBOX_CHECK__);
+}
+
+QCheckBox::indicator:disabled {
+    background: #f3f4f6;
+    border-color: #dde0e5;
+}
+
+QCheckBox::indicator:checked:disabled {
+    background: #b6b3f2;
+    border-color: #b6b3f2;
+}
+
+QCheckBox:disabled {
+    color: #a8adb6;
 }
 
 /* ---- Tabela ---- */
@@ -506,45 +594,6 @@ QProgressBar {
 QProgressBar::chunk {
     background: #3730e0;
     border-radius: 4px;
-}
-
-/* ---- Checkbox ---- */
-QCheckBox {
-    spacing: 8px;
-    color: #1a1d24;
-    font-size: 12px;
-}
-
-QCheckBox::indicator {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    border: 1px solid #c9cdd4;
-    background: #ffffff;
-}
-
-QCheckBox::indicator:checked {
-    background: #3730e0;
-    border-color: #3730e0;
-    image: none;
-}
-
-QCheckBox::indicator:hover {
-    border-color: #3730e0;
-}
-
-QCheckBox::indicator:disabled {
-    background: #f3f4f6;
-    border-color: #dde0e5;
-}
-
-QCheckBox::indicator:checked:disabled {
-    background: #b6b3f2;
-    border-color: #b6b3f2;
-}
-
-QCheckBox:disabled {
-    color: #a8adb6;
 }
 
 /* ---- Splitter / scroll ---- */
@@ -642,6 +691,41 @@ QLabel#loginSeguranca {
 """
 
 
+_MARCADOR_CHECK: str | None = None
+
+
+def _caminho_marcador_checkbox() -> str:
+    global _MARCADOR_CHECK
+    if _MARCADOR_CHECK is not None:
+        return _MARCADOR_CHECK
+
+    cache = Path(__file__).resolve().parent / ".cache"
+    cache.mkdir(exist_ok=True)
+    destino = cache / "checkbox-check.png"
+
+    if not destino.exists():
+        pixmap = QPixmap(14, 14)
+        pixmap.fill(QColor(0, 0, 0, 0))
+        pintor = QPainter(pixmap)
+        pintor.setRenderHint(QPainter.RenderHint.Antialiasing)
+        caneta = QPen(QColor("#ffffff"))
+        caneta.setWidthF(2.2)
+        caneta.setCapStyle(Qt.PenCapStyle.RoundCap)
+        caneta.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        pintor.setPen(caneta)
+        pintor.drawLine(2, 7, 5, 10)
+        pintor.drawLine(5, 10, 12, 3)
+        pintor.end()
+        pixmap.save(str(destino), "PNG")
+
+    _MARCADOR_CHECK = destino.as_posix()
+    return _MARCADOR_CHECK
+
+
+def folha_estilo() -> str:
+    return FOLHA_ESTILO.replace("__CHECKBOX_CHECK__", _caminho_marcador_checkbox())
+
+
 def aplicar_fonte(app: QApplication) -> None:
     for familia in ("Geist", "Inter", "Segoe UI", "Ubuntu", "Cantarell", "sans-serif"):
         fonte = QFont(familia, 10)
@@ -672,6 +756,27 @@ def criar_botao(
     return botao
 
 
+def criar_opcao(texto: str, tooltip: str = "") -> QCheckBox:
+    opcao = QCheckBox(texto)
+    opcao.setObjectName("opcaoApp")
+    if tooltip:
+        opcao.setToolTip(tooltip)
+    return opcao
+
+
+def criar_linha_opcoes(*opcoes: QCheckBox) -> QWidget:
+    container = QFrame()
+    container.setObjectName("faixaOpcoes")
+    layout = QHBoxLayout(container)
+    layout.setContentsMargins(12, 6, 12, 6)
+    layout.setSpacing(20)
+    layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+    for opcao in opcoes:
+        layout.addWidget(opcao)
+    layout.addStretch()
+    return container
+
+
 def criar_alternador(
     rotulo_esquerda: str,
     rotulo_direita: str,
@@ -680,28 +785,34 @@ def criar_alternador(
 ) -> tuple[QWidget, QPushButton, QPushButton, QButtonGroup]:
     container = QWidget()
     container.setObjectName("alternador")
+    container.setMinimumWidth(200)
+    container.setMaximumWidth(240)
+    container.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
     layout = QHBoxLayout(container)
-    layout.setContentsMargins(2, 2, 2, 2)
-    layout.setSpacing(0)
+    layout.setContentsMargins(3, 3, 3, 3)
+    layout.setSpacing(2)
 
     esquerda = QPushButton(rotulo_esquerda)
     direita = QPushButton(rotulo_direita)
     for botao in (esquerda, direita):
         botao.setObjectName("alternadorOpcao")
         botao.setCheckable(True)
-        botao.setFixedHeight(34)
+        botao.setAutoDefault(False)
+        botao.setDefault(False)
+        botao.setFixedHeight(32)
         botao.setCursor(Qt.CursorShape.PointingHandCursor)
-        botao.setFocusPolicy(Qt.FocusPolicy.TabFocus)
+        botao.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        botao.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
     grupo = QButtonGroup(container)
     grupo.setExclusive(True)
-    grupo.addButton(esquerda)
-    grupo.addButton(direita)
+    grupo.addButton(esquerda, 0)
+    grupo.addButton(direita, 1)
     esquerda.setChecked(esquerda_ativa)
     direita.setChecked(not esquerda_ativa)
 
-    layout.addWidget(esquerda)
-    layout.addWidget(direita)
+    layout.addWidget(esquerda, 1)
+    layout.addWidget(direita, 1)
     return container, esquerda, direita, grupo
 
 

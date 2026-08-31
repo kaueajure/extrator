@@ -9,4 +9,10 @@ __pycache__/
 .DS_Store
 dist/
 build/pyinstaller/
+build/_icones/
+build/webrp-extrator.ico
+src/ui/.cache/
+node_modules/
+package-lock.json
+package.json
 *.spec.bak
