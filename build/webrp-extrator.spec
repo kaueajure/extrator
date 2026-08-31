@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-raiz = Path(SPECPATH).parent
+raiz = Path(SPECPATH)
 projeto = raiz.parent
 icones = projeto / "src" / "recursos" / "icons"
 ico = raiz / "webrp-extrator.ico"
