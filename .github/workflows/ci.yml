@@ -1,0 +1,85 @@
+name: Testes e smoke build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Testes Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependências
+        run: pip install -e .
+      - name: Executar testes
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m unittest discover -s tests -v
+
+  smoke-linux:
+    name: Smoke build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-cursor0 libxkbcommon-x11-0 libegl1
+          pip install -e . pyinstaller pillow
+      - name: Gerar executável
+        run: |
+          python build/preparar-icones.py
+          pyinstaller build/webrp-extrator.spec --noconfirm
+      - name: Verificar inicialização
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          set +e
+          timeout 8s dist/WebRP-Extrator/WebRP-Extrator
+          CODIGO=$?
+          set -e
+          if [[ "$CODIGO" -ne 124 ]]; then
+            echo "O executável encerrou antes de abrir (código $CODIGO)."
+            exit 1
+          fi
+
+  smoke-windows:
+    name: Smoke build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Dependências
+        run: pip install -e . pyinstaller pillow
+      - name: Gerar executável
+        run: |
+          python build/preparar-icones.py
+          pyinstaller build/webrp-extrator.spec --noconfirm
+      - name: Verificar inicialização
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = "offscreen"
+          $processo = Start-Process "dist\WebRP-Extrator\WebRP-Extrator.exe" -PassThru
+          Start-Sleep -Seconds 8
+          if ($processo.HasExited) {
+            Write-Error "O executável encerrou antes de abrir (código $($processo.ExitCode))."
+            exit 1
+          }
+          Stop-Process -Id $processo.Id -Force

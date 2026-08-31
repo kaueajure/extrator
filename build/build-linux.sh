@@ -20,7 +20,7 @@ pyinstaller build/webrp-extrator.spec --noconfirm
 echo "==> Chromium do Playwright (pasta ms-playwright)…"
 mkdir -p dist/WebRP-Extrator/ms-playwright
 PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" \
-  python -m playwright install chromium
+  python -m playwright install chromium --no-shell
 
 cp build/webrp-extrator.sh dist/WebRP-Extrator/
 chmod +x dist/WebRP-Extrator/webrp-extrator.sh

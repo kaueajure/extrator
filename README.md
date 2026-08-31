@@ -15,6 +15,10 @@ Distribuído via `extrator.webriopreto.com` (página de download no site WebRP o
 - **Sugestões de busca** para consultas genéricas (regras locais ou Gemini)
 - **Continuar busca** — retoma da mesma consulta pulando lugares já extraídos
 - **Cruzar com WebRP** — ignora leads que já estão no funil
+- **Histórico por empresa** — registra extraídas, importadas, duplicadas, descartadas e falhas
+- **Continuação configurável** — pula todas, somente importadas ou refaz após 30 dias
+- **Diagnóstico** — informa o motivo de cada descarte e mantém log local rotativo
+- **Atualizações** — verifica novas versões pelo WebRP ou GitHub
 - **Buscas variadas** — termos alternativos, botão “Próxima busca variada” e rotação após importar
 - **Implementar ao WebRP** — envia leads para `https://webriopreto.com/api/admin/leads`
 
@@ -73,13 +77,13 @@ Gera **instaladores** Windows e Linux (sem `.zip` / `.tar.gz` para o usuário fi
 **Teste (sem release pública):**
 
 1. GitHub → **Actions** → **Build releases** → **Run workflow**
-2. Baixe os artifacts `WebRP-Extrator-windows` (Setup.exe) e `WebRP-Extrator-linux` (Setup.run)
+2. Baixe os artifacts `WebRP-Extrator-windows` e `WebRP-Extrator-linux`
 
 **Release oficial:**
 
 ```bash
-git tag v1.2.1
-git push origin v1.2.1
+git tag v1.3.0
+git push origin v1.3.0
 ```
 
 Artefatos em [Releases](https://github.com/kaueajure/extrator/releases):
@@ -90,12 +94,18 @@ Artefatos em [Releases](https://github.com/kaueajure/extrator/releases):
 
 O Chromium do Playwright já vem embutido. **Não precisa de `.env`** — basta login de desenvolvedor no WebRP.
 
+O progresso detalhado fica em um SQLite na pasta de dados do usuário. O botão **Histórico** permite
+filtrar estados, abrir a empresa no Maps, limpar o histórico local e copiar um diagnóstico sem senhas.
+
+Para atualização automática em repositório privado, o WebRP pode expor
+`GET /api/extrator/versao` retornando `{"versao":"1.3.0","url_download":"https://..."}`.
+
 ### Linux (local)
 
 ```bash
 ./instalar
 pyinstaller build/webrp-extrator.spec --noconfirm
-PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" python -m playwright install chromium
+PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" python -m playwright install chromium --no-shell
 ./build/criar-deb-linux.sh
 # opcional: ./build/criar-appimage-linux.sh
 ```

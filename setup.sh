@@ -37,7 +37,7 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 
 echo "==> Instalando Chromium do Playwright…"
-python -m playwright install chromium
+python -m playwright install chromium --no-shell
 
 echo "==> Gerando ícones do app…"
 python -m pip install pillow -q

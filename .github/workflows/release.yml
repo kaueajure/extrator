@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-windows:
     name: Windows
@@ -32,8 +36,23 @@ jobs:
           pip install pillow
           python build/preparar-icones.py
 
+      - name: Testes
+        run: python -m unittest discover -s tests -v
+
       - name: PyInstaller
         run: pyinstaller build/webrp-extrator.spec --noconfirm
+
+      - name: Smoke test do executável
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = "offscreen"
+          $processo = Start-Process "dist\WebRP-Extrator\WebRP-Extrator.exe" -PassThru
+          Start-Sleep -Seconds 8
+          if ($processo.HasExited) {
+            Write-Error "O executável encerrou antes de abrir (código $($processo.ExitCode))."
+            exit 1
+          }
+          Stop-Process -Id $processo.Id -Force
 
       - name: Chromium do Playwright (embutido na pasta)
         shell: pwsh
@@ -41,7 +60,8 @@ jobs:
           $browsers = "$PWD/dist/WebRP-Extrator/ms-playwright"
           New-Item -ItemType Directory -Force -Path $browsers | Out-Null
           $env:PLAYWRIGHT_BROWSERS_PATH = $browsers
-          python -m playwright install chromium
+          python -m playwright install chromium --no-shell
+          python -c "from playwright.sync_api import sync_playwright; p=sync_playwright().start(); b=p.chromium.launch(channel='chromium', headless=True); b.close(); p.stop(); print('Chromium: OK')"
 
       - name: Inno Setup
         shell: pwsh
@@ -82,14 +102,34 @@ jobs:
           pip install pillow
           python build/preparar-icones.py
 
+      - name: Testes
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m unittest discover -s tests -v
+
       - name: PyInstaller
         run: pyinstaller build/webrp-extrator.spec --noconfirm
+
+      - name: Smoke test do executável
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          set +e
+          timeout 8s dist/WebRP-Extrator/WebRP-Extrator
+          CODIGO=$?
+          set -e
+          if [[ "$CODIGO" -ne 124 ]]; then
+            echo "O executável encerrou antes de abrir (código $CODIGO)."
+            exit 1
+          fi
 
       - name: Chromium do Playwright (embutido na pasta)
         run: |
           mkdir -p dist/WebRP-Extrator/ms-playwright
           PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" \
-            python -m playwright install chromium
+            python -m playwright install chromium --no-shell
+          PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" \
+            python -c "from playwright.sync_api import sync_playwright; p=sync_playwright().start(); b=p.chromium.launch(channel='chromium', headless=True); b.close(); p.stop(); print('Chromium: OK')"
 
       - name: Resolver versão
         id: versao
@@ -128,6 +168,13 @@ jobs:
         with:
           merge-multiple: true
 
+      - name: Gerar checksums
+        run: |
+          sha256sum \
+            WebRP-Extrator-Setup.exe \
+            WebRP-Extrator_amd64.deb \
+            WebRP-Extrator-x86_64.AppImage > SHA256SUMS.txt
+
       - name: Criar release
         uses: softprops/action-gh-release@v2
         with:
@@ -135,6 +182,7 @@ jobs:
             WebRP-Extrator-Setup.exe
             WebRP-Extrator_amd64.deb
             WebRP-Extrator-x86_64.AppImage
+            SHA256SUMS.txt
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

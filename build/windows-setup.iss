@@ -1,6 +1,6 @@
 ; Instalador Windows do WebRP Extrator (Inno Setup 6)
 #define MyAppName "WebRP Extrator"
-#define MyAppVersion "1.2.8"
+#define MyAppVersion "1.3.0"
 #define MyAppPublisher "Web Rio Preto"
 #define MyAppURL "https://extrator.webriopreto.com"
 #define MyAppExeName "WebRP-Extrator.exe"

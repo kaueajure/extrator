@@ -10,9 +10,13 @@ __pycache__/
 dist/
 build/pyinstaller/
 build/_icones/
+build/webrp-extrator/
 build/webrp-extrator.ico
 src/ui/.cache/
 node_modules/
 package-lock.json
 package.json
 *.spec.bak
+WebRP-Extrator-Setup.exe
+WebRP-Extrator_amd64.deb
+WebRP-Extrator-x86_64.AppImage
