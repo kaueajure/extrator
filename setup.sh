@@ -58,7 +58,7 @@ if [[ "$(uname -s)" == "Linux" ]]; then
 Type=Application
 Name=WebRP Extrator
 Comment=Prospecte no Google Maps e importe leads no WebRP
-Exec=bash -c "cd '$RAIZ' && exec -a WebRP-Extrator '$RAIZ/.venv/bin/python' '$RAIZ/app.py'"
+Exec=bash -c "cd '$RAIZ' && exec '$RAIZ/.venv/bin/python' '$RAIZ/app.py'"
 Path=$RAIZ
 Icon=webrp-extrator
 Categories=Office;Network;

@@ -83,6 +83,25 @@ EOF
 cat > "$STAGING/DEBIAN/postinst" <<'EOF'
 #!/bin/bash
 set -e
+
+# Versões antigas do instalador de desenvolvimento criavam um atalho no perfil
+# do usuário. Esse arquivo tem prioridade sobre o atalho instalado pelo pacote e
+# pode impedir a abertura do app ao alterar o argv[0] do Python com `exec -a`.
+# Move somente atalhos reconhecidamente gerados pelo WebRP para um backup.
+for pasta_usuario in /home/* /root; do
+  atalho="$pasta_usuario/.local/share/applications/webrp-extrator.desktop"
+  if [[ -f "$atalho" ]] \
+    && grep -Fq "Name=WebRP Extrator" "$atalho" \
+    && grep -Fq "/.venv/bin/python" "$atalho" \
+    && grep -Fq "/app.py" "$atalho"; then
+    backup="$atalho.legacy"
+    if [[ -e "$backup" ]]; then
+      backup="$atalho.legacy.$(date +%s)"
+    fi
+    mv "$atalho" "$backup"
+  fi
+done
+
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database -q /usr/share/applications 2>/dev/null || true
 fi

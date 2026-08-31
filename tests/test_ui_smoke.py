@@ -4,12 +4,14 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtCore import qInstallMessageHandler
 from PySide6.QtWidgets import QApplication, QWidget
 
+from src.servicos.atualizacoes import AtualizacaoDisponivel
 from src.ui.historico import DialogoHistorico
 from src.ui.principal import JanelaPrincipal
 from src.ui.tema import folha_estilo
@@ -61,6 +63,27 @@ class UiSmokeTest(unittest.TestCase):
 
         erros = [mensagem for mensagem in mensagens if "parse stylesheet" in mensagem]
         self.assertEqual(erros, [])
+
+    def test_nova_versao_exibe_aviso_automaticamente(self) -> None:
+        janela = JanelaPrincipal(
+            _ClienteFalso(),
+            "teste@webriopreto.com",
+            "https://webriopreto.com",
+        )
+        informacao = AtualizacaoDisponivel(
+            versao_atual="1.3.0",
+            versao_nova="9.0.0",
+            url="https://exemplo/WebRP-Extrator.deb",
+            disponivel=True,
+            download_direto=True,
+            nome_arquivo="WebRP-Extrator.deb",
+        )
+
+        with patch.object(janela, "_oferecer_atualizacao") as oferecer:
+            janela._atualizacao_concluida(informacao)
+
+        oferecer.assert_called_once_with(informacao)
+        janela.close()
 
 
 if __name__ == "__main__":

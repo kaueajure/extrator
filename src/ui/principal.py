@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QUrl
+from PySide6.QtCore import QStandardPaths, Qt, QTimer, QUrl
 from PySide6.QtGui import QColor, QDesktopServices
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -69,6 +70,7 @@ from src.ui.tema import (
 )
 from src.ui.workers import (
     AtualizacaoWorker,
+    DownloadAtualizacaoWorker,
     ExtracaoWorker,
     GoogleLoginWorker,
     ImportacaoWorker,
@@ -88,8 +90,11 @@ class JanelaPrincipal(QMainWindow):
         self.worker_sugestao: SugestaoWorker | None = None
         self.worker_google: GoogleLoginWorker | None = None
         self.worker_atualizacao: AtualizacaoWorker | None = None
+        self.worker_download_atualizacao: DownloadAtualizacaoWorker | None = None
         self._atualizacao_manual = False
         self._url_atualizacao = ""
+        self._informacao_atualizacao = None
+        self._caminho_atualizacao = ""
         self._lugares_importando: list[LugarExtraido] = []
         self._ultimo_resultado: ResultadoExtracao | None = None
         self._pendente_fechar = False
@@ -1272,8 +1277,11 @@ class JanelaPrincipal(QMainWindow):
         self._iniciar_verificacao_atualizacao(manual=False)
 
     def _verificar_atualizacao_manual(self) -> None:
-        if self._url_atualizacao:
-            QDesktopServices.openUrl(QUrl(self._url_atualizacao))
+        if self._caminho_atualizacao:
+            self._oferecer_instalacao_atualizacao(self._caminho_atualizacao)
+            return
+        if self._informacao_atualizacao is not None:
+            self._oferecer_atualizacao(self._informacao_atualizacao)
             return
         self._iniciar_verificacao_atualizacao(manual=True)
 
@@ -1291,23 +1299,114 @@ class JanelaPrincipal(QMainWindow):
     def _atualizacao_concluida(self, informacao) -> None:
         self.botao_atualizacao.setEnabled(True)
         if informacao.disponivel:
+            self._informacao_atualizacao = informacao
             self._url_atualizacao = informacao.url or (
                 "https://github.com/kaueajure/extrator/releases/latest"
             )
             self.botao_atualizacao.setText(f"Atualizar v{informacao.versao_nova}")
-            self.botao_atualizacao.setToolTip("Clique para abrir a nova versão")
+            self.botao_atualizacao.setToolTip("Clique para baixar e instalar a nova versão")
             self._registrar_log(f"Nova versão disponível: v{informacao.versao_nova}.")
-            if self._atualizacao_manual:
-                QMessageBox.information(
-                    self,
-                    "Atualização disponível",
-                    f"A versão {informacao.versao_nova} está disponível. "
-                    "Clique no botão da versão para abrir o download.",
-                )
+            self._oferecer_atualizacao(informacao)
         else:
             self.botao_atualizacao.setText(f"v{VERSAO}")
             if self._atualizacao_manual:
                 QMessageBox.information(self, "Aplicativo atualizado", "Você já está na versão mais recente.")
+
+    def _oferecer_atualizacao(self, informacao) -> None:
+        caixa = QMessageBox(self)
+        caixa.setIcon(QMessageBox.Icon.Information)
+        caixa.setWindowTitle("Atualização disponível")
+        caixa.setText(f"A versão {informacao.versao_nova} do WebRP Extrator está disponível.")
+        if informacao.download_direto:
+            caixa.setInformativeText(
+                f"Versão instalada: {VERSAO}. O instalador será baixado diretamente pelo aplicativo."
+            )
+            baixar = caixa.addButton("Baixar atualização", QMessageBox.ButtonRole.AcceptRole)
+        else:
+            caixa.setInformativeText(
+                f"Versão instalada: {VERSAO}. O download direto não foi informado nesta versão."
+            )
+            baixar = caixa.addButton(
+                "Abrir página da versão",
+                QMessageBox.ButtonRole.AcceptRole,
+            )
+        caixa.addButton("Depois", QMessageBox.ButtonRole.RejectRole)
+        caixa.exec()
+        if caixa.clickedButton() is not baixar:
+            return
+        if informacao.download_direto:
+            self._baixar_atualizacao(informacao)
+        else:
+            QDesktopServices.openUrl(QUrl(informacao.url))
+
+    def _baixar_atualizacao(self, informacao) -> None:
+        if self.worker_download_atualizacao and self.worker_download_atualizacao.isRunning():
+            return
+        pasta = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
+        pasta_destino = Path(pasta) if pasta else Path.home() / "Downloads"
+        self.botao_atualizacao.setEnabled(False)
+        self.botao_atualizacao.setText("Baixando…")
+        self.worker_download_atualizacao = DownloadAtualizacaoWorker(
+            informacao,
+            pasta_destino,
+            self,
+        )
+        self.worker_download_atualizacao.progresso.connect(
+            self._progresso_download_atualizacao
+        )
+        self.worker_download_atualizacao.concluido.connect(
+            self._download_atualizacao_concluido
+        )
+        self.worker_download_atualizacao.erro.connect(self._download_atualizacao_erro)
+        self.worker_download_atualizacao.start()
+
+    def _progresso_download_atualizacao(self, recebido: int, total: int) -> None:
+        if total > 0:
+            percentual = min(100, round(recebido * 100 / total))
+            self.botao_atualizacao.setText(f"Baixando… {percentual}%")
+
+    def _download_atualizacao_concluido(self, caminho: str) -> None:
+        self._caminho_atualizacao = caminho
+        self.botao_atualizacao.setEnabled(True)
+        self.botao_atualizacao.setText("Instalar atualização")
+        self.botao_atualizacao.setToolTip(caminho)
+        self._registrar_log(f"Atualização baixada em: {caminho}")
+        self._oferecer_instalacao_atualizacao(caminho)
+
+    def _oferecer_instalacao_atualizacao(self, caminho: str) -> None:
+        caixa = QMessageBox(self)
+        caixa.setIcon(QMessageBox.Icon.Information)
+        caixa.setWindowTitle("Atualização pronta")
+        caixa.setText("O instalador da nova versão foi baixado.")
+        caixa.setInformativeText(
+            "Clique em instalar para abrir o instalador do sistema. "
+            "No Linux, confirme a instalação quando solicitado."
+        )
+        instalar = caixa.addButton("Instalar agora", QMessageBox.ButtonRole.AcceptRole)
+        caixa.addButton("Depois", QMessageBox.ButtonRole.RejectRole)
+        caixa.exec()
+        if caixa.clickedButton() is instalar:
+            aberto = QDesktopServices.openUrl(QUrl.fromLocalFile(caminho))
+            if not aberto:
+                QMessageBox.warning(
+                    self,
+                    "Não foi possível abrir o instalador",
+                    f"Abra manualmente o arquivo baixado em:\n{caminho}",
+                )
+
+    def _download_atualizacao_erro(self, mensagem: str) -> None:
+        self.botao_atualizacao.setEnabled(True)
+        if self._informacao_atualizacao is not None:
+            self.botao_atualizacao.setText(
+                f"Atualizar v{self._informacao_atualizacao.versao_nova}"
+            )
+        else:
+            self.botao_atualizacao.setText(f"v{VERSAO}")
+        QMessageBox.warning(
+            self,
+            "Falha ao baixar atualização",
+            f"Não foi possível baixar o instalador.\n\n{mensagem}",
+        )
 
     def _atualizacao_erro(self, mensagem: str) -> None:
         self.botao_atualizacao.setEnabled(True)
@@ -1353,6 +1452,13 @@ class JanelaPrincipal(QMainWindow):
         self.botao_importar.setText("Importar ao WebRP")
 
     def _sair(self) -> None:
+        if self.worker_download_atualizacao and self.worker_download_atualizacao.isRunning():
+            QMessageBox.information(
+                self,
+                "Atualização sendo baixada",
+                "Aguarde o download da atualização terminar antes de fechar o aplicativo.",
+            )
+            return
         if self.worker_extracao and self.worker_extracao.isRunning():
             confirmar = QMessageBox.question(
                 self,
@@ -1398,6 +1504,14 @@ class JanelaPrincipal(QMainWindow):
             self.popup_sugestoes.mostrar_sob_ancora()
 
     def closeEvent(self, event) -> None:
+        if self.worker_download_atualizacao and self.worker_download_atualizacao.isRunning():
+            event.ignore()
+            QMessageBox.information(
+                self,
+                "Atualização sendo baixada",
+                "Aguarde o download da atualização terminar antes de fechar o aplicativo.",
+            )
+            return
         if self.worker_extracao and self.worker_extracao.isRunning():
             event.ignore()
             confirmar = QMessageBox.question(

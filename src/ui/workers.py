@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import httpx
 from PySide6.QtCore import QThread, Signal
 
@@ -12,7 +14,7 @@ from src.extrator.modelos import (
     LugarExtraido,
     ResultadoExtracao,
 )
-from src.servicos.atualizacoes import verificar_atualizacao
+from src.servicos.atualizacoes import baixar_atualizacao, verificar_atualizacao
 from src.servicos.buscas_variadas import ler_urls_processadas
 from src.servicos.historico_empresas import (
     registrar_lugar,
@@ -292,5 +294,28 @@ class AtualizacaoWorker(QThread):
     def run(self) -> None:
         try:
             self.concluido.emit(verificar_atualizacao(self.webrp_url))
+        except Exception as erro:
+            self.erro.emit(str(erro))
+
+
+class DownloadAtualizacaoWorker(QThread):
+    progresso = Signal(int, int)
+    concluido = Signal(str)
+    erro = Signal(str)
+
+    def __init__(self, informacao, pasta_destino: Path, parent=None) -> None:
+        super().__init__(parent)
+        self.informacao = informacao
+        self.pasta_destino = pasta_destino
+
+    def run(self) -> None:
+        try:
+            caminho = baixar_atualizacao(
+                self.informacao.url,
+                self.pasta_destino,
+                self.informacao.nome_arquivo,
+                lambda recebido, total: self.progresso.emit(recebido, total),
+            )
+            self.concluido.emit(str(caminho))
         except Exception as erro:
             self.erro.emit(str(erro))

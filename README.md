@@ -100,6 +100,8 @@ filtrar estados, abrir a empresa no Maps, limpar o histórico local e copiar um 
 
 Para atualização automática em repositório privado, o WebRP pode expor
 `GET /api/extrator/versao` retornando `{"versao":"1.3.0","url_download":"https://..."}`.
+Quando encontra uma versão nova, o aplicativo avisa o usuário, baixa o instalador
+correto para o sistema na pasta de Downloads e permite iniciar a instalação sem visitar o site.
 
 ### Linux (local)
 
