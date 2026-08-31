@@ -72,7 +72,7 @@ Section: utils
 Priority: optional
 Architecture: amd64
 Installed-Size: ${INSTALLED_KB}
-Depends: libxcb-cursor0, libxkbcommon-x11-0, libegl1, libglib2.0-0, libnss3, libnspr4, libatk1.0-0, libatk-bridge2.0-0, libdrm2, libxcomposite1, libxdamage1, libxfixes3, libxrandr2, libgbm1, libasound2
+Depends: libglib2.0-0, libgl1, libegl1, libdbus-1-3, libfontconfig1, libxcb-cursor0, libxkbcommon-x11-0, libnss3, libnspr4, libatk1.0-0, libatk-bridge2.0-0, libdrm2, libxcomposite1, libxdamage1, libxfixes3, libxrandr2, libgbm1, libasound2
 Maintainer: Web Rio Preto <contato@webriopreto.com>
 Homepage: https://extrator.webriopreto.com
 Description: Extrator de leads do Google Maps para o WebRP

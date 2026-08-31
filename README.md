@@ -41,7 +41,8 @@ chmod +x instalar rodar
 ```bash
 sudo apt update
 sudo apt install python3 python3-pip python3-venv \
-  libxcb-cursor0 libxkbcommon-x11-0 libegl1
+  libglib2.0-0 libgl1 libegl1 libdbus-1-3 libfontconfig1 \
+  libxcb-cursor0 libxkbcommon-x11-0
 ```
 
 ## Uso
