@@ -84,7 +84,7 @@ jobs:
       - name: AppImage (portátil, sem instalar)
         run: |
           chmod +x build/criar-appimage-linux.sh
-          VERSAO=1.2.1 ./build/criar-appimage-linux.sh
+          VERSAO="${GITHUB_REF_NAME#v}" ./build/criar-appimage-linux.sh
 
       - uses: actions/upload-artifact@v4
         with:

@@ -696,7 +696,7 @@ def extrair_lugares(
                     _log(
                         callback,
                         "Sem login Google neste perfil — use «Entrar no Google» "
-                        "(com «Mostrar navegador») se o Maps limitar buscas.",
+                        "(com o navegador em modo «Visível») se o Maps limitar buscas.",
                     )
 
             _log(callback, "Aguardando resultados da busca…")

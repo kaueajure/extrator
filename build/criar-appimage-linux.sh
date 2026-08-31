@@ -6,7 +6,7 @@ RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$RAIZ/dist/WebRP-Extrator"
 APPDIR="$RAIZ/dist/WebRP-Extrator.AppDir"
 SAIDA="$RAIZ/WebRP-Extrator-x86_64.AppImage"
-VERSAO="${VERSAO:-1.2.1}"
+VERSAO="${VERSAO:-1.2.2}"
 
 if [[ ! -d "$DIST" ]]; then
   echo "Pasta dist/WebRP-Extrator não encontrada. Rode o PyInstaller antes."

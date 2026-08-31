@@ -112,7 +112,7 @@ class ExtracaoWorker(QThread):
         except CaptchaDetectado as erro:
             self.erro.emit(
                 "Google pediu captcha ou verificação de segurança. "
-                "Marque «Mostrar navegador», resolva o desafio na janela do Chrome "
+                "Selecione «Visível» no navegador, resolva o desafio na janela do Chrome "
                 "e use «Entrar no Google» se ainda não estiver logado. "
                 f"Detalhe: {erro.motivo}"
             )

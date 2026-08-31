@@ -13,6 +13,7 @@ def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("WebRP Extrator")
     app.setOrganizationName("WebRioPreto")
+    app.setStyle("Fusion")
     aplicar_fonte(app)
     app.setStyleSheet(FOLHA_ESTILO)
 

@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 
 from src.config import banco_configurado, chave_gemini, credenciais_env, empacotado, webrp_url_padrao
 from src.servicos.sessao import CredenciaisSalvas, ler_credenciais, salvar_credenciais
-from src.ui.tema import FOLHA_ESTILO, criar_campo, criar_logotipo
+from src.ui.tema import FOLHA_ESTILO, criar_botao, criar_campo, criar_logotipo
 from src.ui.workers import LoginWorker
 
 
@@ -134,8 +134,7 @@ class JanelaLogin(QDialog):
         self.check_lembrar = QCheckBox("Manter conectado neste computador")
         self.check_lembrar.setChecked(True)
 
-        self.botao_entrar = QPushButton("Entrar")
-        self.botao_entrar.setObjectName("primario")
+        self.botao_entrar = criar_botao("Entrar", "primario")
         self.botao_entrar.setMinimumHeight(46)
         self.botao_entrar.setDefault(True)
         self.botao_entrar.clicked.connect(self._entrar)

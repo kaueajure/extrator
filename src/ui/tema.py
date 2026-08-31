@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication,
+    QButtonGroup,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -216,11 +217,12 @@ QTextEdit#logs {
 QPushButton {
     min-height: 36px;
     max-height: 36px;
-    padding: 0 12px;
+    padding: 0 14px;
     border-radius: 7px;
     font-size: 11px;
     font-weight: 630;
     border: 1px solid transparent;
+    outline: none;
 }
 
 QWidget#grupoBotoes {
@@ -232,61 +234,74 @@ QWidget#grupoBotoes QPushButton {
 }
 
 QPushButton#primario {
-    background: #3730e0;
+    background-color: #3730e0;
     color: #ffffff;
-    border: none;
+    border: 1px solid #2d27bd;
     min-width: 120px;
 }
 
 QPushButton#primario:hover {
-    background: #2d27bd;
+    background-color: #2d27bd;
+    border-color: #241fb0;
+}
+
+QPushButton#primario:pressed {
+    background-color: #241fb0;
+    border-color: #1c1890;
 }
 
 QPushButton#primario:disabled {
-    background: #3730e0;
-    color: #ffffff;
-    opacity: 0.58;
+    background-color: #b6b3f2;
+    color: #f5f4ff;
+    border-color: #b6b3f2;
 }
 
 QPushButton#secundario {
-    background: #ffffff;
+    background-color: #ffffff;
     color: #242730;
     border: 1px solid #d2d5da;
     min-width: 0;
 }
 
 QPushButton#secundario:hover {
-    background: #f8f9fa;
-    border-color: #c9cdd4;
+    background-color: #f8f9fa;
+    border-color: #b8bcc4;
+    color: #1a1d24;
+}
+
+QPushButton#secundario:pressed {
+    background-color: #eef0f3;
+    border-color: #a8adb6;
 }
 
 QPushButton#secundario:disabled {
-    color: #747a84;
-    opacity: 0.58;
+    background-color: #f8f9fa;
+    color: #a8adb6;
+    border-color: #e4e6ea;
 }
 
 QPushButton#perigo {
-    background: #ffffff;
+    background-color: #ffffff;
     color: #b42318;
     border: 1px solid #fecdca;
     min-width: 100px;
 }
 
 QPushButton#perigo:hover {
-    background: #fff0ed;
+    background-color: #fff0ed;
     border-color: #fda29b;
+    color: #912018;
+}
+
+QPushButton#perigo:pressed {
+    background-color: #ffe4e0;
+    border-color: #f97066;
 }
 
 QPushButton#perigo:disabled {
+    background-color: #fff8f7;
     color: #fda29b;
-    opacity: 0.58;
-}
-
-QPushButton#compacto {
-    min-height: 36px;
-    max-height: 36px;
-    padding: 0 12px;
-    font-size: 10px;
+    border-color: #fee4e2;
 }
 
 QPushButton#sair {
@@ -306,17 +321,70 @@ QPushButton#sair:hover {
     color: #1a1d24;
 }
 
+QPushButton#sair:pressed {
+    background: #e4e6ea;
+}
+
 QPushButton#chipSugestao {
     min-height: 32px;
     padding: 0 12px;
-    background: #ffffff;
+    background-color: #ffffff;
     color: #3730e0;
     border: 1px solid #c8c5ff;
-    font-weight: 500;
+    font-weight: 560;
 }
 
 QPushButton#chipSugestao:hover {
-    background: #eeedff;
+    background-color: #eeedff;
+    border-color: #aba6ff;
+}
+
+QPushButton#chipSugestao:pressed {
+    background-color: #e0deff;
+}
+
+/* ---- Alternador (Visível / Invisível) ---- */
+QWidget#alternador {
+    background: #eef0f3;
+    border: 1px solid #d2d5da;
+    border-radius: 8px;
+}
+
+QPushButton#alternadorOpcao {
+    min-height: 34px;
+    max-height: 34px;
+    padding: 0 14px;
+    margin: 2px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #626873;
+    font-size: 11px;
+    font-weight: 560;
+}
+
+QPushButton#alternadorOpcao:hover:!checked {
+    background: #e4e6ea;
+    color: #1a1d24;
+}
+
+QPushButton#alternadorOpcao:checked {
+    background: #ffffff;
+    color: #3730e0;
+    border-color: #c8c5ff;
+    font-weight: 640;
+}
+
+QPushButton#alternadorOpcao:disabled {
+    background: transparent;
+    color: #a8adb6;
+    border-color: transparent;
+}
+
+QPushButton#alternadorOpcao:checked:disabled {
+    background: #f3f4f6;
+    color: #8b90f5;
+    border-color: #dde0e5;
 }
 
 /* ---- Sugestões / vazio ---- */
@@ -458,10 +526,25 @@ QCheckBox::indicator {
 QCheckBox::indicator:checked {
     background: #3730e0;
     border-color: #3730e0;
+    image: none;
 }
 
 QCheckBox::indicator:hover {
     border-color: #3730e0;
+}
+
+QCheckBox::indicator:disabled {
+    background: #f3f4f6;
+    border-color: #dde0e5;
+}
+
+QCheckBox::indicator:checked:disabled {
+    background: #b6b3f2;
+    border-color: #b6b3f2;
+}
+
+QCheckBox:disabled {
+    color: #a8adb6;
 }
 
 /* ---- Splitter / scroll ---- */
@@ -582,9 +665,44 @@ def criar_botao(
     botao.setObjectName(estilo)
     botao.setFixedHeight(32 if compacto else ALTURA_BOTAO)
     botao.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+    botao.setCursor(Qt.CursorShape.PointingHandCursor)
+    botao.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
     if largura_minima:
         botao.setMinimumWidth(largura_minima)
     return botao
+
+
+def criar_alternador(
+    rotulo_esquerda: str,
+    rotulo_direita: str,
+    *,
+    esquerda_ativa: bool = True,
+) -> tuple[QWidget, QPushButton, QPushButton, QButtonGroup]:
+    container = QWidget()
+    container.setObjectName("alternador")
+    layout = QHBoxLayout(container)
+    layout.setContentsMargins(2, 2, 2, 2)
+    layout.setSpacing(0)
+
+    esquerda = QPushButton(rotulo_esquerda)
+    direita = QPushButton(rotulo_direita)
+    for botao in (esquerda, direita):
+        botao.setObjectName("alternadorOpcao")
+        botao.setCheckable(True)
+        botao.setFixedHeight(34)
+        botao.setCursor(Qt.CursorShape.PointingHandCursor)
+        botao.setFocusPolicy(Qt.FocusPolicy.TabFocus)
+
+    grupo = QButtonGroup(container)
+    grupo.setExclusive(True)
+    grupo.addButton(esquerda)
+    grupo.addButton(direita)
+    esquerda.setChecked(esquerda_ativa)
+    direita.setChecked(not esquerda_ativa)
+
+    layout.addWidget(esquerda)
+    layout.addWidget(direita)
+    return container, esquerda, direita, grupo
 
 
 def criar_grupo_botoes(*botoes: QPushButton) -> QWidget:

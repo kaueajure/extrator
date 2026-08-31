@@ -43,6 +43,7 @@ from src.servicos.webrp import ClienteWebRP, SessaoExpirada
 from src.ui.popup_sugestoes import PopupSugestoes
 from src.ui.tema import (
     FOLHA_ESTILO,
+    criar_alternador,
     criar_barra_resultados,
     criar_barra_rodape,
     criar_botao,
@@ -120,7 +121,7 @@ class JanelaPrincipal(QMainWindow):
             self.campo_consulta.setText(filtros_salvos.consulta)
         self.campo_local.setText(filtros_salvos.local)
         self.spin_limite.setValue(max(1, min(LIMITE_MAXIMO_RESULTADOS, filtros_salvos.limite)))
-        self.check_visivel.setChecked(filtros_salvos.navegador_visivel)
+        self._definir_navegador_visivel(filtros_salvos.navegador_visivel)
         self.check_sem_site.setChecked(filtros_salvos.sem_site)
         self.campo_max_avaliacoes.setText(filtros_salvos.max_avaliacoes)
         self.campo_nota_minima.setText(filtros_salvos.nota_minima)
@@ -234,9 +235,14 @@ class JanelaPrincipal(QMainWindow):
         self.spin_limite.setValue(10)
         self.spin_limite.setFixedWidth(84)
 
-        self.check_visivel = QCheckBox("Navegador visível")
-        self.check_visivel.setObjectName("opcaoCompacta")
-        self.check_visivel.stateChanged.connect(self._preferencias_alteradas)
+        (
+            self.alternador_navegador,
+            self.btn_nav_visivel,
+            self.btn_nav_invisivel,
+            self.grupo_navegador,
+        ) = criar_alternador("Visível", "Invisível", esquerda_ativa=True)
+        self.btn_nav_visivel.clicked.connect(self._navegador_alterado)
+        self.btn_nav_invisivel.clicked.connect(self._navegador_alterado)
 
         self.botao_extrair = criar_botao("Extrair dados", "primario", 120)
         self.botao_extrair.clicked.connect(self._iniciar_extracao)
@@ -258,7 +264,7 @@ class JanelaPrincipal(QMainWindow):
         col_limite = criar_campo("Resultados", self.spin_limite)
         col_limite.setFixedWidth(92)
         linha_acoes.addWidget(col_limite)
-        linha_acoes.addWidget(self.check_visivel, alignment=Qt.AlignmentFlag.AlignBottom)
+        linha_acoes.addWidget(criar_campo("Navegador", self.alternador_navegador))
         linha_acoes.addStretch()
         linha_acoes.addWidget(criar_grupo_botoes(self.botao_extrair, self.botao_cancelar))
         layout.addLayout(linha_acoes)
@@ -524,24 +530,41 @@ class JanelaPrincipal(QMainWindow):
                 consulta=self.campo_consulta.text().strip(),
                 local=self.campo_local.text().strip(),
                 limite=self.spin_limite.value(),
-                navegador_visivel=self.check_visivel.isChecked(),
+                navegador_visivel=self._navegador_visivel(),
             )
         )
         self._atualizar_status_busca()
         self._atualizar_status_google()
 
+    def _navegador_visivel(self) -> bool:
+        return self.btn_nav_visivel.isChecked()
+
+    def _definir_navegador_visivel(self, visivel: bool) -> None:
+        self.btn_nav_visivel.setChecked(visivel)
+        self.btn_nav_invisivel.setChecked(not visivel)
+
+    def _navegador_alterado(self) -> None:
+        if not self.btn_nav_visivel.isChecked() and not self.btn_nav_invisivel.isChecked():
+            self._definir_navegador_visivel(True)
+        self._preferencias_alteradas()
+
     def _atualizar_status_google(self) -> None:
         self.label_google.setText(texto_status())
         self.btn_google_sair.setEnabled(sessao_marcada())
         if self.check_perfil_google.isChecked():
-            self.check_visivel.setChecked(True)
-            self.check_visivel.setEnabled(False)
-            self.check_visivel.setToolTip(
-                "Com sessão Google ativa o navegador precisa ficar visível para manter o login."
+            self._definir_navegador_visivel(True)
+            self.btn_nav_invisivel.setEnabled(False)
+            self.btn_nav_visivel.setEnabled(True)
+            self.alternador_navegador.setToolTip(
+                "Com «Sessão Google» ativa o navegador precisa ficar visível para manter o login."
             )
         else:
-            self.check_visivel.setEnabled(True)
-            self.check_visivel.setToolTip("")
+            self.btn_nav_visivel.setEnabled(True)
+            self.btn_nav_invisivel.setEnabled(True)
+            self.alternador_navegador.setToolTip(
+                "Visível: abre o Chrome na tela. Invisível: roda em segundo plano (mais rápido, "
+                "mas captchas exigem modo visível)."
+            )
 
     def _iniciar_login_google(self) -> None:
         if self.worker_google and self.worker_google.isRunning():
@@ -825,7 +848,7 @@ class JanelaPrincipal(QMainWindow):
             consulta,
             local,
             self.spin_limite.value(),
-            self.check_visivel.isChecked(),
+            self._navegador_visivel(),
             self.check_continuar.isChecked(),
             self.check_cruzar.isChecked(),
             self.check_perfil_google.isChecked(),
@@ -900,13 +923,13 @@ class JanelaPrincipal(QMainWindow):
             self.label_feedback.setText(mensagem)
             self.label_feedback.style().unpolish(self.label_feedback)
             self.label_feedback.style().polish(self.label_feedback)
-            if not self.check_visivel.isChecked():
-                self.check_visivel.setChecked(True)
+            if not self._navegador_visivel():
+                self._definir_navegador_visivel(True)
                 self._preferencias_alteradas()
             QMessageBox.warning(
                 self,
                 "Captcha detectado",
-                mensagem + "\n\n«Mostrar navegador» foi ativado para a próxima tentativa.",
+                mensagem + "\n\nO modo «Visível» foi ativado para a próxima tentativa.",
             )
         else:
             QMessageBox.critical(self, "Extração interrompida", mensagem)
