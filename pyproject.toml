@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "webrp-extrator"
-version = "1.2.7"
+version = "1.2.8"
 description = "App desktop para extrair leads do Google Maps e importar no WebRP"
 requires-python = ">=3.11"
 dependencies = [

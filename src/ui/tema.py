@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QStandardPaths, Qt
 from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -699,8 +699,15 @@ def _caminho_marcador_checkbox() -> str:
     if _MARCADOR_CHECK is not None:
         return _MARCADOR_CHECK
 
-    cache = Path(__file__).resolve().parent / ".cache"
-    cache.mkdir(exist_ok=True)
+    diretorio_cache = QStandardPaths.writableLocation(
+        QStandardPaths.StandardLocation.CacheLocation
+    )
+    cache = (
+        Path(diretorio_cache)
+        if diretorio_cache
+        else Path.home() / ".cache" / "WebRP-Extrator"
+    )
+    cache.mkdir(parents=True, exist_ok=True)
     destino = cache / "checkbox-check.png"
 
     if not destino.exists():
