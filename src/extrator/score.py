@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
 from src.extrator.modelos import LugarExtraido
 
@@ -35,14 +36,65 @@ CATEGORIAS_PME_MEDIA = (
     "marmita",
 )
 
-REDES_SOCIAIS = ("instagram.com", "facebook.com", "linktr.ee", "wa.me", "whatsapp.com")
+DOMINIOS_DE_PERFIL = (
+    # Redes sociais
+    "facebook.com",
+    "fb.com",
+    "instagram.com",
+    "kwai.com",
+    "linkedin.com",
+    "pinterest.com",
+    "snapchat.com",
+    "threads.net",
+    "tiktok.com",
+    "tumblr.com",
+    "twitch.tv",
+    "twitter.com",
+    "x.com",
+    "youtube.com",
+    "youtu.be",
+    # Mensageiros
+    "discord.com",
+    "discord.gg",
+    "t.me",
+    "telegram.me",
+    "wa.me",
+    "whatsapp.com",
+    # Páginas que apenas agrupam links e perfis
+    "beacons.ai",
+    "bio.link",
+    "bio.site",
+    "campsite.bio",
+    "linkbio.co",
+    "linktr.ee",
+    "milkshake.app",
+    "solo.to",
+    "taplink.cc",
+)
+
+
+def eh_perfil_social(site: str | None) -> bool:
+    """Indica links de perfil ou bio que não representam um site oficial."""
+    valor = (site or "").strip().lower()
+    if not valor:
+        return False
+
+    endereco = valor if "://" in valor else f"//{valor}"
+    dominio = (urlsplit(endereco).hostname or "").rstrip(".")
+    if dominio.startswith("www."):
+        dominio = dominio[4:]
+
+    return any(
+        dominio == dominio_perfil or dominio.endswith(f".{dominio_perfil}")
+        for dominio_perfil in DOMINIOS_DE_PERFIL
+    )
 
 
 def _pontos_site(lugar: LugarExtraido) -> float:
     site = (lugar.site or "").strip().lower()
     if not site:
         return 24.0
-    if any(rede in site for rede in REDES_SOCIAIS):
+    if eh_perfil_social(site):
         return 16.5
     if site.startswith("http"):
         return 4.0
@@ -153,7 +205,8 @@ class FiltrosLead:
     score_minimo: int | None = None
 
     def passa(self, lugar: LugarExtraido, score: int) -> bool:
-        if self.sem_site and lugar.site:
+        tem_site_oficial = bool((lugar.site or "").strip()) and not eh_perfil_social(lugar.site)
+        if self.sem_site and tem_site_oficial:
             return False
 
         if self.max_avaliacoes is not None:

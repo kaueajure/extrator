@@ -356,7 +356,10 @@ class JanelaPrincipal(QMainWindow):
         linha_controles.addStretch()
         layout.addLayout(linha_controles)
 
-        self.check_sem_site = criar_opcao("Apenas sem site")
+        self.check_sem_site = criar_opcao(
+            "Apenas sem site",
+            "Mantém redes sociais e páginas de links; exclui somente sites oficiais.",
+        )
         self.campo_max_avaliacoes = QLineEdit()
         self.campo_max_avaliacoes.setPlaceholderText("200")
         self.campo_max_avaliacoes.setFixedWidth(84)
