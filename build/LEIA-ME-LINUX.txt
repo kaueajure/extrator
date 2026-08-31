@@ -1,17 +1,18 @@
 WebRP Extrator — Linux
 ======================
 
-Arquivo: WebRP-Extrator-x86_64.AppImage
+Recomendado: WebRP-Extrator_amd64.deb (Ubuntu / Debian / Mint / Pop!_OS)
 
-1. Baixe o AppImage
-2. Torne executável e abra:
-     chmod +x WebRP-Extrator-x86_64.AppImage
-     ./WebRP-Extrator-x86_64.AppImage
-
-Não instala nada no sistema. É um app portátil.
+1. Baixe o arquivo .deb
+2. Dê duplo clique e confirme «Instalar»
+   — ou no terminal: sudo apt install ./WebRP-Extrator_amd64.deb
+3. Abra pelo menu de aplicativos: «WebRP Extrator»
 
 Entre com e-mail e senha de desenvolvedor do painel WebRP.
 Não é necessário configurar .env.
+
+Alternativa portátil: WebRP-Extrator-x86_64.AppImage
+  chmod +x WebRP-Extrator-x86_64.AppImage && ./WebRP-Extrator-x86_64.AppImage
 
 Se faltar biblioteca Qt (Ubuntu/Debian):
   sudo apt install libxcb-cursor0 libxkbcommon-x11-0 libegl1

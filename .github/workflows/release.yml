@@ -81,15 +81,31 @@ jobs:
           PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" \
             python -m playwright install chromium
 
-      - name: AppImage (portátil, sem instalar)
+      - name: Resolver versão
+        id: versao
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          if [[ ! "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            V=$(python -c "from src.config import VERSAO; print(VERSAO)")
+          fi
+          echo "numero=$V" >> "$GITHUB_OUTPUT"
+
+      - name: Pacote .deb (Ubuntu/Debian — instalador)
+        run: |
+          chmod +x build/criar-deb-linux.sh
+          VERSAO="${{ steps.versao.outputs.numero }}" ./build/criar-deb-linux.sh
+
+      - name: AppImage (alternativa portátil)
         run: |
           chmod +x build/criar-appimage-linux.sh
-          VERSAO="${GITHUB_REF_NAME#v}" ./build/criar-appimage-linux.sh
+          VERSAO="${{ steps.versao.outputs.numero }}" ./build/criar-appimage-linux.sh
 
       - uses: actions/upload-artifact@v4
         with:
           name: WebRP-Extrator-linux
-          path: WebRP-Extrator-x86_64.AppImage
+          path: |
+            WebRP-Extrator_amd64.deb
+            WebRP-Extrator-x86_64.AppImage
           retention-days: 30
 
   publish-release:
@@ -107,6 +123,7 @@ jobs:
         with:
           files: |
             WebRP-Extrator-Setup.exe
+            WebRP-Extrator_amd64.deb
             WebRP-Extrator-x86_64.AppImage
           generate_release_notes: true
         env:

@@ -85,7 +85,8 @@ git push origin v1.2.1
 Artefatos em [Releases](https://github.com/kaueajure/extrator/releases):
 
 - `WebRP-Extrator-Setup.exe` — instalador Windows (próximo → concluir → abrir)
-- `WebRP-Extrator-x86_64.AppImage` — app portátil Linux (`chmod +x` e executar; não instala nada)
+- `WebRP-Extrator_amd64.deb` — instalador Linux (duplo clique ou `sudo apt install ./WebRP-Extrator_amd64.deb`)
+- `WebRP-Extrator-x86_64.AppImage` — alternativa portátil (sem instalar)
 
 O Chromium do Playwright já vem embutido. **Não precisa de `.env`** — basta login de desenvolvedor no WebRP.
 
@@ -95,7 +96,8 @@ O Chromium do Playwright já vem embutido. **Não precisa de `.env`** — basta 
 ./instalar
 pyinstaller build/webrp-extrator.spec --noconfirm
 PLAYWRIGHT_BROWSERS_PATH="$PWD/dist/WebRP-Extrator/ms-playwright" python -m playwright install chromium
-./build/criar-appimage-linux.sh
+./build/criar-deb-linux.sh
+# opcional: ./build/criar-appimage-linux.sh
 ```
 
 ### Windows (local)
