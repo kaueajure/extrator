@@ -5,7 +5,7 @@ set -euo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 DIST="$RAIZ/dist/WebRP-Extrator"
 STAGING="$RAIZ/dist/deb-root"
-VERSAO="${VERSAO:-1.2.3}"
+VERSAO="${VERSAO:-1.2.4}"
 SAIDA="$RAIZ/WebRP-Extrator_amd64.deb"
 
 if [[ ! -d "$DIST" ]]; then

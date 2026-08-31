@@ -38,7 +38,10 @@ def gerar_png(caminho: Path, tamanho: int = 48) -> None:
             for dy in range(int(3 * s)):
                 pintar(int(x * s) + dx, int(y * s) + dy, branco)
 
-    raw = b"".join(b"\x00" + bytes(c for c in linha) for linha in px)
+    raw = b"".join(
+        b"\x00" + bytes(c for pixel in linha for c in pixel)
+        for linha in px
+    )
     ihdr = struct.pack(">IIBBBBB", tamanho, tamanho, 8, 6, 0, 0, 0)
     png = (
         b"\x89PNG\r\n\x1a\n"
